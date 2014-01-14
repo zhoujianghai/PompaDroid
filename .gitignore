@@ -1,0 +1,10 @@
+*.obj
+Debug.win32
+*.opensdf
+*.sdf
+*.sln
+*.suo
+*.vcxproj
+*.filters
+*.user
+
