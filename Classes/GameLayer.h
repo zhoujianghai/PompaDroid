@@ -14,11 +14,16 @@ public:
 	virtual bool init();
 	CREATE_FUNC(GameLayer);
 
-	void onWalk(cocos2d::Point direction, float distance);
-	void onAttack();
-	void onStop();
+	void onHeroWalk(cocos2d::Point direction, float distance);
+	void onHeroAttack();
+	void onHeroStop();
+
+	void onEnemyAttack(BaseSprite *pSprite);
+	void addEnemy();
 
 	void update(float dt);
+	void updateHero(float dt);
+	void updateEnemies(float dt);
 
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;

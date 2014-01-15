@@ -4,6 +4,27 @@
 
 using namespace cocos2d;
 
+long millisecondNow()
+{
+	struct timeval now_t;
+	gettimeofday(&now_t,NULL);      
+	return now_t.tv_sec * 1000 + now_t.tv_usec / 1000;  
+}
+
+bool collisionDetection(const BoundingBox &hitBox, const BoundingBox &bodyBox)
+{
+	Rect heroHitRect = hitBox.actual;
+	Rect enemyBodyRect = bodyBox.actual;
+	if(heroHitRect.intersectsRect(enemyBodyRect))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+#define CURTIME millisecondNow()
+
 GameLayer::GameLayer()
 	:m_pTiledMap(NULL),
 	m_pSpriteNodes(NULL),
@@ -97,7 +118,7 @@ bool GameLayer::init()
 }
 
 
-void GameLayer::onWalk(Point direction, float distance)
+void GameLayer::onHeroWalk(Point direction, float distance)
 {
 	m_pHero->setFlippedX(direction.x < 0 ? true : false);
 	m_pHero->walk();
@@ -105,25 +126,29 @@ void GameLayer::onWalk(Point direction, float distance)
 	m_heroVelocity = direction * (distance < 96 ? 1 : 2);
 }
 
-void GameLayer::onAttack()
+void GameLayer::onHeroAttack()
 {
 	m_pHero->attack();
 	
 	if(m_pHero->getCurrActionState() == ACTION_STATE_ATTACK)
 	{
-		unsigned int count = m_pEnemies->count();
 		Object *enemyObj = NULL;
 		CCARRAY_FOREACH(m_pEnemies, enemyObj)
 		{
 			Enemy *pEnemy = (Enemy*)enemyObj;
-			if(pEnemy->getCurrActionState() != ACTION_STATE_KNOCKOUT)
+			if(pEnemy->getCurrActionState() == ACTION_STATE_KNOCKOUT)
 			{
-				if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
+				continue;
+			}
+			if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
+			{
+				BoundingBox heroHitBox = m_pHero->getHitBox();
+				BoundingBox enemyBodyBox = pEnemy->getBodyBox();
+
+				if(::collisionDetection(heroHitBox, enemyBodyBox))
 				{
-					if(m_pHero->getBodyBox().actual.intersectsRect(pEnemy->getHitBox().actual))
-					{
-						pEnemy->hurt(m_pHero->getAttack());
-					}
+					int damage = m_pHero->getAttack();
+					pEnemy->hurt(damage);
 				}
 			}
 		}
@@ -131,18 +156,25 @@ void GameLayer::onAttack()
 
 }
 
-void GameLayer::onStop()
+void GameLayer::onHeroStop()
 {
 	m_pHero->idle();
 }
 
 void GameLayer::update(float dt)
 {
+	this->updateHero(dt);
+	//this->updateEnemies(dt);
+}
+
+void GameLayer::updateHero(float dt)
+{
 	if(m_pHero->getCurrActionState() == ACTION_STATE_WALK)
 	{
 		float halfHeroFrameHeight = (m_pHero->getDisplayFrame()->getRect().size.height) / 2;
 		Point expectP = m_pHero->getPosition() + m_heroVelocity;
 		Point actualP = expectP;
+		//can not walk on the wall or out of map
 		if(expectP.y < halfHeroFrameHeight || expectP.y > (m_fTileHeight * 3 + halfHeroFrameHeight) )
 		{
 			actualP.y = m_pHero->getPositionY();
@@ -153,10 +185,87 @@ void GameLayer::update(float dt)
 		if(expectP.x > halfWinWidth && expectP.x <= (mapWidth - halfWinWidth))
 		{
 			this->setPositionX(this->getPositionX() - m_heroVelocity.x);
-		}else if(expectP.x < halfHeroFrameWidth || expectP.x >= mapWidth - halfHeroFrameWidth){
+		}else if(expectP.x < halfHeroFrameWidth || expectP.x >= mapWidth - halfHeroFrameWidth)
+		{
 			actualP.x = m_pHero->getPositionX();
 		}
 		m_pHero->setPosition(actualP);
 		m_pHero->setZOrder(m_fScreenHeight - m_pHero->getPositionY());
 	}
+}
+
+void GameLayer::updateEnemies(float dt) {
+	int alive = 0;
+    Object *pObj = NULL;
+	float distanceSQ = 0.0f;
+	int randomChoice = 0;
+    CCARRAY_FOREACH(m_pEnemies, pObj)
+	{
+		Enemy *pEnemy = (Enemy*)pObj;
+		if(pEnemy->getCurrActionState() != ACTION_STATE_KNOCKOUT) 
+		{
+			++ alive;
+			if(CURTIME > pEnemy->getNextDecisionTime())
+			{
+				distanceSQ = pEnemy->getPosition().getDistance(m_pHero->getPosition());
+				if(distanceSQ <= 50*50)
+				{
+					pEnemy->setNextDecisionTime(CURTIME + CCRANDOM_0_1() / 2);
+					randomChoice = CCRANDOM_0_1() > 0.5f ? 0 : 1;
+					if(randomChoice == 0 )
+					{
+						if(m_pHero->getPosition().x > pEnemy->getPosition().x)
+						{
+							pEnemy->setScaleX(1.0f);
+						} else {
+							pEnemy->setScaleX(-1.0f);
+						}
+					}
+					pEnemy->attack();
+					if(pEnemy->getCurrActionState() == ACTION_STATE_ATTACK)
+					{
+						if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
+						{
+							Rect heroBodyRect = m_pHero->getBodyBox().actual;
+							Rect enemyHitRect = pEnemy->getHitBox().actual;
+							if(heroBodyRect.intersectsRect(enemyHitRect))
+							{
+								m_pHero->hurt(pEnemy->getAttack());
+							}
+						}
+					}else {
+						pEnemy->idle();
+					}
+				} else if(distanceSQ <= m_fScreenWidth * m_fScreenWidth)
+				{
+					pEnemy->setNextDecisionTime(CURTIME + CCRANDOM_0_1() / 2 + 0.5);
+					randomChoice = CCRANDOM_0_1() * 2 > 1 ? 0 : 1;
+					if(randomChoice == 0) {
+						Point direction = (m_pHero->getPosition() -  pEnemy->getPosition()).normalize();
+						//[robotwalkWithDirection:moveDirection];
+					} else {
+						pEnemy->idle();
+					}
+				} 
+			}
+
+		}
+	}
+	if(alive == 0 && m_pEnemies->count() > 0)
+	{
+		m_pEnemies->removeAllObjects();
+	}
+
+}
+
+void GameLayer::onEnemyAttack(BaseSprite *pSprite)
+{
+
+}
+
+void GameLayer::addEnemy()
+{
+	Enemy *pNewEnemy = Enemy::create();
+	pNewEnemy->onAttack = std::bind(&GameLayer::onEnemyAttack, this, pNewEnemy);
+
 }

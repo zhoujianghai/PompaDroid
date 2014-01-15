@@ -6,9 +6,9 @@
 class OperateDelegate
 {
 public:
-	virtual void onWalk(cocos2d::Point direction, float distance) = 0;
-	virtual void onAttack() = 0;
-	virtual void onStop() = 0;
+	virtual void onHeroWalk(cocos2d::Point direction, float distance) = 0;
+	virtual void onHeroAttack() = 0;
+	virtual void onHeroStop() = 0;
 };
 
 

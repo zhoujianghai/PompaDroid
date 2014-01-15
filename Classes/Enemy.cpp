@@ -3,7 +3,8 @@
 
 using namespace cocos2d;
 
-Enemy::Enemy()
+Enemy::Enemy():
+	m_nextDecisionTime(0)
 {}
 
 Enemy::~Enemy()
@@ -38,8 +39,8 @@ bool Enemy::init()
 		this->setDirection(Point::ZERO);
 
 		Size heroShowSize = this->getDisplayFrame()->getRect().size;
-		this->m_hitBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.width / 2), heroShowSize);
-		this->m_bodyBox = this->createBoundingBox(Point(heroShowSize.width / 2, -5), Size(25, 20));
+		this->m_bodyBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.width / 2), heroShowSize);
+		this->m_hitBox = this->createBoundingBox(Point(heroShowSize.width / 2, -5), Size(25, 20));
 
 		ret = true;
 	} while(0);

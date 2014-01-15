@@ -12,6 +12,10 @@ public:
 	bool init();
 
 	CREATE_FUNC(Enemy);
+
+	std::function<void(void)> onAttack;
+
+	CC_SYNTHESIZE(unsigned int, m_nextDecisionTime, NextDecisionTime);
 };
 
 

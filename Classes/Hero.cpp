@@ -56,8 +56,8 @@ bool Hero::init()
 		//this->addChild(m_pBlood, 1, 1);
 
 		Size heroShowSize = this->getDisplayFrame()->getRect().size;
-		this->m_hitBox = this->createBoundingBox( Point(-heroShowSize.width / 2, -heroShowSize.height / 2), heroShowSize);
-		this->m_bodyBox = this->createBoundingBox( Point(heroShowSize.width / 2, -10), Size(20, 20));
+		this->m_bodyBox = this->createBoundingBox( Point(-heroShowSize.width / 2, -heroShowSize.height / 2), heroShowSize);
+		this->m_hitBox = this->createBoundingBox( Point(heroShowSize.width / 2, -10), Size(20, 20));
 
 		ret = true;
 	} while(0);
