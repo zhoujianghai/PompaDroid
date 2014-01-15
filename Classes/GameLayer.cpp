@@ -164,7 +164,7 @@ void GameLayer::onHeroStop()
 void GameLayer::update(float dt)
 {
 	this->updateHero(dt);
-	//this->updateEnemies(dt);
+	this->updateEnemies(dt);
 }
 
 void GameLayer::updateHero(float dt)
@@ -197,64 +197,42 @@ void GameLayer::updateHero(float dt)
 void GameLayer::updateEnemies(float dt) {
 	int alive = 0;
     Object *pObj = NULL;
-	float distanceSQ = 0.0f;
-	int randomChoice = 0;
+	Point distance = Point::ZERO;
+	if(m_pEnemies->count() < 5)
+	{
+		this->addEnemy();
+	}
+
+	Point heroLocation = m_pHero->getPosition();
     CCARRAY_FOREACH(m_pEnemies, pObj)
 	{
 		Enemy *pEnemy = (Enemy*)pObj;
-		if(pEnemy->getCurrActionState() != ACTION_STATE_KNOCKOUT) 
+		pEnemy->execute(heroLocation);
+		if(pEnemy->getCurrActionState() == ACTION_STATE_KNOCKOUT)
+		{
+			m_pEnemies->removeObject(pEnemy);
+			continue;
+		}
+		if(pEnemy->getCurrActionState() == ACTION_STATE_WALK) 
 		{
 			++ alive;
-			if(CURTIME > pEnemy->getNextDecisionTime())
+			Point location = pEnemy->getPosition();
+			Point direction = pEnemy->getMoveDirection();
+			Point expect = location + direction;
+			float halfEnemyFrameHeight = (pEnemy->getDisplayFrame()->getRect().size.height) / 2;
+			if(expect.y < halfEnemyFrameHeight || expect.y > (m_fTileHeight * 3 + halfEnemyFrameHeight) )
 			{
-				distanceSQ = pEnemy->getPosition().getDistance(m_pHero->getPosition());
-				if(distanceSQ <= 50*50)
-				{
-					pEnemy->setNextDecisionTime(CURTIME + CCRANDOM_0_1() / 2);
-					randomChoice = CCRANDOM_0_1() > 0.5f ? 0 : 1;
-					if(randomChoice == 0 )
-					{
-						if(m_pHero->getPosition().x > pEnemy->getPosition().x)
-						{
-							pEnemy->setScaleX(1.0f);
-						} else {
-							pEnemy->setScaleX(-1.0f);
-						}
-					}
-					pEnemy->attack();
-					if(pEnemy->getCurrActionState() == ACTION_STATE_ATTACK)
-					{
-						if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
-						{
-							Rect heroBodyRect = m_pHero->getBodyBox().actual;
-							Rect enemyHitRect = pEnemy->getHitBox().actual;
-							if(heroBodyRect.intersectsRect(enemyHitRect))
-							{
-								m_pHero->hurt(pEnemy->getAttack());
-							}
-						}
-					}else {
-						pEnemy->idle();
-					}
-				} else if(distanceSQ <= m_fScreenWidth * m_fScreenWidth)
-				{
-					pEnemy->setNextDecisionTime(CURTIME + CCRANDOM_0_1() / 2 + 0.5);
-					randomChoice = CCRANDOM_0_1() * 2 > 1 ? 0 : 1;
-					if(randomChoice == 0) {
-						Point direction = (m_pHero->getPosition() -  pEnemy->getPosition()).normalize();
-						//[robotwalkWithDirection:moveDirection];
-					} else {
-						pEnemy->idle();
-					}
-				} 
+				direction.y = 0;
 			}
-
+			pEnemy->setFlippedX(direction.x < 0 ? true : false);
+			pEnemy->setPosition(location + direction);
+			pEnemy->setZOrder(pEnemy->getPositionY());
 		}
 	}
-	if(alive == 0 && m_pEnemies->count() > 0)
-	{
-		m_pEnemies->removeAllObjects();
-	}
+	//if(alive == 0 && m_pEnemies->count() > 0)
+	//{
+	//	m_pEnemies->removeAllObjects();
+	//}
 
 }
 

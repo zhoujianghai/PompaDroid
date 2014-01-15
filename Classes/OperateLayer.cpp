@@ -85,7 +85,7 @@ void OperateLayer::onTouchesBegan(const vector<Touch*>& touches, Event *unused_e
 		{
 			this->showJoystick(p);
 		}else {
-			m_pOperDelegate->onAttack();
+			m_pOperDelegate->onHeroAttack();
 		}
 
 		++ touchIter;
@@ -107,11 +107,11 @@ void OperateLayer::onTouchesMoved(const vector<Touch*>& touches, Event *unused_e
 	Point direction = (dest - start).normalize();
 	this->updateJoystick(direction, distance);
 
-	m_pOperDelegate->onWalk(direction, distance);
+	m_pOperDelegate->onHeroWalk(direction, distance);
 }
 
 void OperateLayer::onTouchesEnded(const vector<Touch*>& touches, Event *unused_event)
 {
 	this->hideJoystick();
-	m_pOperDelegate->onStop();
+	m_pOperDelegate->onHeroStop();
 }

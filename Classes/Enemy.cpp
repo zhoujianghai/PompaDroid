@@ -47,3 +47,56 @@ bool Enemy::init()
 
 	return ret;
 }
+
+void Enemy::execute(const Point& target)
+{
+	if(m_nextDecisionTime == 0)
+	{
+		this->decide(target);
+	}else {
+		-- m_nextDecisionTime;
+	}
+}
+
+void Enemy::decide(const Point& target)
+{
+	Point location = this->getPosition();
+	float distance = location.getDistance(target);
+	log("distance=%f", distance);
+	if(distance < 150)
+	{
+		this->walk();
+		m_moveDirection = (target - location).normalize();
+		this->setFlippedX(m_moveDirection.x < 0 ? true : false);
+		if(m_moveDirection.x > 0)
+		{
+			m_moveDirection.x += ENEMY_VELOCITY;
+		}else {
+			m_moveDirection.x -= ENEMY_VELOCITY;
+		}
+
+		if(m_moveDirection.y > 0)
+		{
+			m_moveDirection.y += ENEMY_VELOCITY;
+		}else {
+			m_moveDirection.y -= ENEMY_VELOCITY;
+		}
+		m_nextDecisionTime = 10;
+
+	}else {
+		this->walk();
+        m_moveDirection.x = CCRANDOM_MINUS1_1();
+        if (m_moveDirection.x > 0) {
+            m_moveDirection.x += ENEMY_VELOCITY;
+        } else {
+            m_moveDirection.x -= ENEMY_VELOCITY;
+        }
+        m_moveDirection.y = CCRANDOM_MINUS1_1();
+        if (m_moveDirection.y > 0) {
+            m_moveDirection.y += ENEMY_VELOCITY;
+        } else {
+            m_moveDirection.y -= ENEMY_VELOCITY;
+        }
+        m_nextDecisionTime = CCRANDOM_0_1() * 100;
+	}
+}
