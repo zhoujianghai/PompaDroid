@@ -192,9 +192,9 @@ void GameLayer::updateEnemies(float dt) {
     Object *pObj = NULL;
 	Point distance = Point::ZERO;
 	log("enemies count = %d", m_pEnemies->count());
-	if(m_pEnemies->count() < 5)
+	if(m_pEnemies->count() < 3)
 	{
-		//this->addEnemy();
+		this->addEnemy();
 	}
 
 	Point heroLocation = m_pHero->getPosition();
@@ -205,6 +205,7 @@ void GameLayer::updateEnemies(float dt) {
 		if(pEnemy->getCurrActionState() == ACTION_STATE_KNOCKOUT)
 		{
 			m_pEnemies->removeObject(pEnemy);
+			m_pSpriteNodes->removeChild(pEnemy, true);
 			continue;
 		}
 		if(pEnemy->getCurrActionState() == ACTION_STATE_WALK) 
@@ -238,14 +239,14 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 
 void GameLayer::addEnemy()
 {
-	Size winSize = Director::sharedDirector()->getWinSize();
+	Size winSize = Director::getInstance()->getWinSize();
 	Point location = Point::ZERO;
 
 	Enemy *pEnemy = Enemy::create();
 	//log("m_pTiledMap->getMapSize() mapSize=%f", m_pTiledMap->getMapSize().width);
 	float halfEnemyFrameHeight = (pEnemy->getDisplayFrame()->getRect().size.height) / 2;
 	float heroPosX = m_pHero->getPositionX();
-	while(fabsf(heroPosX - location.x) < 100)
+	while(fabsf(heroPosX - location.x) < 150)
 	{
 		if(heroPosX < winSize.width / 2)
 		{
@@ -273,7 +274,7 @@ void GameLayer::addEnemy()
 	pEnemy->setVelocity(0.5f);
 	pEnemy->setDirection(Point::ZERO);
 	pEnemy->setEyeArea(200);
-	pEnemy->setAttackArea(30);
+	pEnemy->setAttackArea(50);
 
 	m_pEnemies->addObject(pEnemy);
 	m_pSpriteNodes->addChild(pEnemy);
