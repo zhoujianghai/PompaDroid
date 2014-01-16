@@ -25,7 +25,6 @@ void BaseSprite::idle()
 	if(changeState(ACTION_STATE_IDLE))
 	{
 		this->runAction(m_pIdleAction);
-		this->m_fVelocity = 0.0f;
 	}
 }
 	

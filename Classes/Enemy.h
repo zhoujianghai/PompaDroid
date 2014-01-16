@@ -3,7 +3,12 @@
 
 #include "BaseSprite.h"
 
-#define ENEMY_VELOCITY 0.2f
+typedef enum {
+	AI_IDLE = 0,
+	AI_PATROL,
+	AI_ATTACK,
+	AI_PURSUIT
+}AiState;
 
 class Enemy : public BaseSprite
 {
@@ -18,6 +23,9 @@ public:
 	std::function<void(void)> onAttack;
 
 	CC_SYNTHESIZE(cocos2d::Point, m_moveDirection, MoveDirection);
+	CC_SYNTHESIZE(float, m_eyeArea, EyeArea);
+	CC_SYNTHESIZE(float, m_attackArea, AttackArea)
+	CC_SYNTHESIZE(AiState, m_aiState, AiState);
 
 	void execute(const cocos2d::Point& target);
 

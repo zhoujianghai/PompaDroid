@@ -32,10 +32,7 @@ bool Hero::init()
 		Animation *pKnockOutAnim = this->createAnimation("hero_knockout_%02d.png", 5, 12);
 		this->setKnockOutAction(Sequence::create(Animate::create(pKnockOutAnim), NULL));
 
-		this->setAttack(5);
-		this->setHP(100);
-		this->setVelocity(1);
-		this->setDirection(Point::ZERO);
+
 
 		//this->m_pBlood = ProgressTimer::create(Sprite::create("blood.jpg"));
 		////this->m_pBlood->setContentSize(Size(55, 32));

@@ -66,8 +66,9 @@ bool GameLayer::init()
 		m_pHero->setPosition( Point(100, 100) );
 		m_pHero->idle();
 		m_pHero->setZOrder(m_fScreenHeight - m_pHero->getPositionY());
-
-
+		m_pHero->setAttack(5);
+		m_pHero->setHP(100);
+		m_pHero->setDirection(Point::ZERO);
 
 		Sprite *pBloodSprite = Sprite::create("blood.jpg");
 		this->m_pBlood = ProgressTimer::create(pBloodSprite);
@@ -94,19 +95,11 @@ bool GameLayer::init()
 		m_pSpriteNodes->addChild(m_pHero);
 
 		const int enemyCount = 3;
-		float x = 300;
-		float y = 80;
 		m_pEnemies = Array::createWithCapacity(enemyCount);
 		m_pEnemies->retain();
 		for(int i = 0; i < enemyCount; ++ i)
 		{
-			Enemy *pEnemy = Enemy::create();
-			pEnemy->setPosition(Point(x + i * 100, y));
-			pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
-			pEnemy->idle();
-			m_pEnemies->addObject(pEnemy);
-
-			m_pSpriteNodes->addChild(pEnemy);
+			this->addEnemy();
 		}
 
 		this->scheduleUpdate();
@@ -198,9 +191,10 @@ void GameLayer::updateEnemies(float dt) {
 	int alive = 0;
     Object *pObj = NULL;
 	Point distance = Point::ZERO;
+	log("enemies count = %d", m_pEnemies->count());
 	if(m_pEnemies->count() < 5)
 	{
-		this->addEnemy();
+		//this->addEnemy();
 	}
 
 	Point heroLocation = m_pHero->getPosition();
@@ -218,6 +212,7 @@ void GameLayer::updateEnemies(float dt) {
 			++ alive;
 			Point location = pEnemy->getPosition();
 			Point direction = pEnemy->getMoveDirection();
+			
 			Point expect = location + direction;
 			float halfEnemyFrameHeight = (pEnemy->getDisplayFrame()->getRect().size.height) / 2;
 			if(expect.y < halfEnemyFrameHeight || expect.y > (m_fTileHeight * 3 + halfEnemyFrameHeight) )
@@ -243,7 +238,43 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 
 void GameLayer::addEnemy()
 {
-	Enemy *pNewEnemy = Enemy::create();
-	pNewEnemy->onAttack = std::bind(&GameLayer::onEnemyAttack, this, pNewEnemy);
+	Size winSize = Director::sharedDirector()->getWinSize();
+	Point location = Point::ZERO;
 
+	Enemy *pEnemy = Enemy::create();
+	//log("m_pTiledMap->getMapSize() mapSize=%f", m_pTiledMap->getMapSize().width);
+	float halfEnemyFrameHeight = (pEnemy->getDisplayFrame()->getRect().size.height) / 2;
+	float heroPosX = m_pHero->getPositionX();
+	while(fabsf(heroPosX - location.x) < 100)
+	{
+		if(heroPosX < winSize.width / 2)
+		{
+			location.x = m_pHero->getPositionX() + CCRANDOM_0_1()  * winSize.width / 2;
+		}else if(heroPosX > (m_pTiledMap->getMapSize().width * m_fTileWidth - winSize.width / 2)) {
+			location.x = m_pHero->getPositionX() - CCRANDOM_0_1()  * winSize.width / 2;
+		}else {
+			location.x = m_pHero->getPositionX() + CCRANDOM_MINUS1_1()  * winSize.width / 2;
+		}
+	}
+
+	float maxY = m_fTileHeight * 3 + halfEnemyFrameHeight;
+	location.y = CCRANDOM_0_1() * maxY;
+	if(location.y < halfEnemyFrameHeight)
+	{
+		location.y = halfEnemyFrameHeight;
+	}
+
+	pEnemy->onAttack = std::bind(&GameLayer::onEnemyAttack, this, pEnemy);
+	pEnemy->setPosition(location);
+	pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
+	pEnemy->idle();
+	pEnemy->setAttack(2);
+	pEnemy->setHP(30);
+	pEnemy->setVelocity(0.5f);
+	pEnemy->setDirection(Point::ZERO);
+	pEnemy->setEyeArea(200);
+	pEnemy->setAttackArea(30);
+
+	m_pEnemies->addObject(pEnemy);
+	m_pSpriteNodes->addChild(pEnemy);
 }
