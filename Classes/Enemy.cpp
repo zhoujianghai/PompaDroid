@@ -30,8 +30,8 @@ bool Enemy::init()
 		Animation *pHurtAnim = this->createAnimation("robot_hurt_%02d.png", 3, 20);
 		this->setHurtAction(Sequence::create(Animate::create(pHurtAnim), pCallbackIdle, NULL));
 
-		Animation *pKnockOutAnim = this->createAnimation("robot_knockout_%02d.png", 5, 12);
-		this->setKnockOutAction(Sequence::create(Animate::create(pKnockOutAnim), NULL));
+		Animation *pDeadAnim = this->createAnimation("robot_knockout_%02d.png", 5, 12);
+		this->setDeadAction(Sequence::create(Animate::create(pDeadAnim), Blink::create(3, 9), BaseSprite::createDeadCallbackFunc(), NULL));
 
 		Size heroShowSize = this->getDisplayFrame()->getRect().size;
 		this->m_bodyBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.width / 2), heroShowSize);
@@ -42,6 +42,9 @@ bool Enemy::init()
 
 	return ret;
 }
+
+
+
 
 void Enemy::execute(const Point& target)
 {
@@ -76,7 +79,7 @@ void Enemy::decide(const Point& target)
 	case AI_ATTACK:
 		{
 			this->attack();
-			//this->onAttack();
+			this->onAttack();
 			this->m_nextDecisionTime = 50;
 		}
 		break;

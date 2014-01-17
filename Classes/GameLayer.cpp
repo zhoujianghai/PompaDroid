@@ -69,6 +69,7 @@ bool GameLayer::init()
 		m_pHero->setAttack(5);
 		m_pHero->setHP(100);
 		m_pHero->setDirection(Point::ZERO);
+		//m_pHero->onDeadCallback = std::bind(&GameLayer::onHeroDead, this, m_pHero);
 
 		Sprite *pBloodSprite = Sprite::create("blood.jpg");
 		this->m_pBlood = ProgressTimer::create(pBloodSprite);
@@ -129,7 +130,7 @@ void GameLayer::onHeroAttack()
 		CCARRAY_FOREACH(m_pEnemies, enemyObj)
 		{
 			Enemy *pEnemy = (Enemy*)enemyObj;
-			if(pEnemy->getCurrActionState() == ACTION_STATE_KNOCKOUT)
+			if(pEnemy->getCurrActionState() >= ACTION_STATE_DEAD)
 			{
 				continue;
 			}
@@ -152,6 +153,12 @@ void GameLayer::onHeroAttack()
 void GameLayer::onHeroStop()
 {
 	m_pHero->idle();
+}
+
+void GameLayer::onHeroDead()
+{
+	log("GameLayer::onHeroDead*******************");
+	m_pHero->remove();
 }
 
 void GameLayer::update(float dt)
@@ -191,7 +198,7 @@ void GameLayer::updateEnemies(float dt) {
 	int alive = 0;
     Object *pObj = NULL;
 	Point distance = Point::ZERO;
-	log("enemies count = %d", m_pEnemies->count());
+	//log("enemies count = %d", m_pEnemies->count());
 	if(m_pEnemies->count() < 3)
 	{
 		this->addEnemy();
@@ -202,7 +209,7 @@ void GameLayer::updateEnemies(float dt) {
 	{
 		Enemy *pEnemy = (Enemy*)pObj;
 		pEnemy->execute(heroLocation);
-		if(pEnemy->getCurrActionState() == ACTION_STATE_KNOCKOUT)
+		if(pEnemy->getCurrActionState() == ACTION_STATE_REMOVE)
 		{
 			m_pEnemies->removeObject(pEnemy);
 			m_pSpriteNodes->removeChild(pEnemy, true);
@@ -234,7 +241,32 @@ void GameLayer::updateEnemies(float dt) {
 
 void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 {
+	Object *enemyObj = NULL;
+	CCARRAY_FOREACH(m_pEnemies, enemyObj)
+	{
+		Enemy *pEnemy = (Enemy*)enemyObj;
+		if(pEnemy->getCurrActionState() == ACTION_STATE_ATTACK)
+		{
+			if(m_pHero->getCurrActionState() >= ACTION_STATE_DEAD)
+			{
+				break;
+			}
+			BoundingBox heroBodyBox = m_pHero->getBodyBox();
+			BoundingBox enemyHitBox = pEnemy->getHitBox();
 
+			if(::collisionDetection(enemyHitBox, heroBodyBox))
+			{
+				int damage = pEnemy->getAttack();
+				m_pHero->hurt(damage);
+			}
+		}
+	}
+}
+
+void GameLayer::onEnemyDead(BaseSprite *pTarget)
+{
+	log("GameLayer::onEnemyDead*******************");
+	pTarget->remove();
 }
 
 void GameLayer::addEnemy()
@@ -246,15 +278,16 @@ void GameLayer::addEnemy()
 	//log("m_pTiledMap->getMapSize() mapSize=%f", m_pTiledMap->getMapSize().width);
 	float halfEnemyFrameHeight = (pEnemy->getDisplayFrame()->getRect().size.height) / 2;
 	float heroPosX = m_pHero->getPositionX();
+	float halfWinWidth = (winSize.width / 2);
 	while(fabsf(heroPosX - location.x) < 150)
 	{
-		if(heroPosX < winSize.width / 2)
+		if(heroPosX < halfWinWidth)
 		{
-			location.x = m_pHero->getPositionX() + CCRANDOM_0_1()  * winSize.width / 2;
-		}else if(heroPosX > (m_pTiledMap->getMapSize().width * m_fTileWidth - winSize.width / 2)) {
-			location.x = m_pHero->getPositionX() - CCRANDOM_0_1()  * winSize.width / 2;
+			location.x = m_pHero->getPositionX() + CCRANDOM_0_1()  * halfWinWidth;
+		}else if(heroPosX > (m_pTiledMap->getMapSize().width * m_fTileWidth - halfWinWidth)) {
+			location.x = m_pHero->getPositionX() - CCRANDOM_0_1()  * halfWinWidth;
 		}else {
-			location.x = m_pHero->getPositionX() + CCRANDOM_MINUS1_1()  * winSize.width / 2;
+			location.x = m_pHero->getPositionX() + CCRANDOM_MINUS1_1()  * halfWinWidth;
 		}
 	}
 
@@ -266,10 +299,11 @@ void GameLayer::addEnemy()
 	}
 
 	pEnemy->onAttack = std::bind(&GameLayer::onEnemyAttack, this, pEnemy);
+	pEnemy->onDeadCallback = std::bind(&GameLayer::onEnemyDead, this, pEnemy);
 	pEnemy->setPosition(location);
 	pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
 	pEnemy->idle();
-	pEnemy->setAttack(2);
+	pEnemy->setAttack(20);
 	pEnemy->setHP(30);
 	pEnemy->setVelocity(0.5f);
 	pEnemy->setDirection(Point::ZERO);

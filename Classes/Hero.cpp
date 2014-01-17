@@ -29,10 +29,8 @@ bool Hero::init()
 		Animation *pHurtAnim = this->createAnimation("hero_hurt_%02d.png", 3, 12);
 		this->setHurtAction(Sequence::create(Animate::create(pHurtAnim), pCallbackIdle, NULL));
 
-		Animation *pKnockOutAnim = this->createAnimation("hero_knockout_%02d.png", 5, 12);
-		this->setKnockOutAction(Sequence::create(Animate::create(pKnockOutAnim), NULL));
-
-
+		Animation *pDeadAnim = this->createAnimation("hero_knockout_%02d.png", 5, 12);
+		this->setDeadAction(Sequence::create(Animate::create(pDeadAnim), Blink::create(3, 9), BaseSprite::createDeadCallbackFunc(), NULL));
 
 		//this->m_pBlood = ProgressTimer::create(Sprite::create("blood.jpg"));
 		////this->m_pBlood->setContentSize(Size(55, 32));

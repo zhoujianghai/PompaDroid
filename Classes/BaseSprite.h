@@ -9,7 +9,8 @@ typedef enum {
 	ACTION_STATE_WALK,
 	ACTION_STATE_ATTACK,
 	ACTION_STATE_HURT,
-	ACTION_STATE_KNOCKOUT,
+	ACTION_STATE_DEAD,
+	ACTION_STATE_REMOVE,
 }ActionState;
 
 typedef struct _BoundingBox
@@ -28,13 +29,14 @@ public:
 	void walk();
 	void attack();
 	void hurt(int damage);
-	void knockout();
+	void remove();
+	void dead();
 
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pIdleAction, IdleAction);
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pWalkAction, WalkAction);
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pAttackAction, AttackAction);
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pHurtAction, HurtAction);
-	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pKnockOutAction, KnockOutAction);
+	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pDeadAction, DeadAction);
 
 	CC_SYNTHESIZE(ActionState, m_currActionState, CurrActionState);
 	CC_SYNTHESIZE(cocos2d::Point, m_direction, Direction);
@@ -47,8 +49,15 @@ public:
 
 	virtual void setPosition(const cocos2d::Point &position);
 
+	virtual void onDead();
+
+	cocos2d::CallFunc* createDeadCallbackFunc();
+
+	std::function<void(void)> onDeadCallback;
+
 protected:
 	static cocos2d::Animation* createAnimation(const char* formatStr, int frameCount, int fps);
+
 
 	BoundingBox createBoundingBox(cocos2d::Point origin, cocos2d::Size size);
 	void transformBoxes();

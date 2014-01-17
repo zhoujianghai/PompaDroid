@@ -5,6 +5,7 @@
 #include "OperateDelegate.h"
 
 class BaseSprite;
+class Hero;
 class GameLayer : public cocos2d::Layer, public OperateDelegate
 {
 public:
@@ -17,9 +18,12 @@ public:
 	void onHeroWalk(cocos2d::Point direction, float distance);
 	void onHeroAttack();
 	void onHeroStop();
+	void onHeroDead();
 
 	void onEnemyAttack(BaseSprite *pSprite);
+	void onEnemyDead(BaseSprite *pTarget);
 	void addEnemy();
+
 
 	void update(float dt);
 	void updateHero(float dt);
@@ -27,7 +31,7 @@ public:
 
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;
-	BaseSprite *m_pHero;
+	Hero *m_pHero;
 	cocos2d::Array *m_pEnemies;
 	cocos2d::SpriteBatchNode *m_pSpriteNodes;
 	cocos2d::Point m_heroVelocity;
