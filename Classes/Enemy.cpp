@@ -34,7 +34,7 @@ bool Enemy::init()
 		this->setDeadAction(Sequence::create(Animate::create(pDeadAnim), Blink::create(3, 9), BaseSprite::createDeadCallbackFunc(), NULL));
 
 		Size heroShowSize = this->getDisplayFrame()->getRect().size;
-		this->m_bodyBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.width / 2), heroShowSize);
+		this->m_bodyBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.height / 2), heroShowSize);
 		this->m_hitBox = this->createBoundingBox(Point(heroShowSize.width / 2, -5), Size(25, 20));
 
 		ret = true;
@@ -60,7 +60,7 @@ void Enemy::decide(const Point& target)
 {
 	Point location = this->getPosition();
 	float distance = location.getDistance(target);
-	log("distance=%f, m_fVelocity=%f", distance, m_fVelocity);
+	//log("distance=%f, m_fVelocity=%f", distance, m_fVelocity);
 
 	bool isFlippedX = this->isFlippedX();
 	bool isOnTargetLeft = (location.x < target.x ? true : false);

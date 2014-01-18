@@ -123,17 +123,20 @@ BoundingBox BaseSprite::createBoundingBox(cocos2d::Point origin, cocos2d::Size s
 
 
 
-void BaseSprite::transformBoxes() {
-	float scaleX =  this->getScaleX();
-	float scaleY =  this->getScaleY();
-	m_hitBox.actual.origin = this->getPosition() + Point(m_hitBox.original.origin.x * scaleX, m_hitBox.original.origin.y * scaleY);
-    m_hitBox.actual.size = Size(m_hitBox.original.size.width * scaleX, m_hitBox.original.size.height * scaleY);
-    m_bodyBox.actual.origin = this->getPosition() + Point(m_bodyBox.original.origin.x * scaleX, m_bodyBox.original.origin.y * scaleY);
-    m_bodyBox.actual.size = Size(m_bodyBox.original.size.width * scaleX, m_bodyBox.original.size.height * scaleY);
+void BaseSprite::updateBoxes() {
+	bool isFlippedX = this->isFlippedX();
+	float x = 0.0f;
+	if(isFlippedX) {
+		x = this->getPosition().x - m_hitBox.original.origin.x;
+	}else {
+		x = this->getPosition().x + m_hitBox.original.origin.x;
+	}
+	m_hitBox.actual.origin = Point(x, this->getPosition().y + m_hitBox.original.origin.y);
+    m_bodyBox.actual.origin = this->getPosition() +m_bodyBox.original.origin;
 }
 
 void BaseSprite::setPosition(const Point &position)
 {
 	Sprite::setPosition(position);
-	this->transformBoxes();
+	this->updateBoxes();
 }

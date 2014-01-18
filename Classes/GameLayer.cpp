@@ -13,9 +13,11 @@ long millisecondNow()
 
 bool collisionDetection(const BoundingBox &hitBox, const BoundingBox &bodyBox)
 {
-	Rect heroHitRect = hitBox.actual;
-	Rect enemyBodyRect = bodyBox.actual;
-	if(heroHitRect.intersectsRect(enemyBodyRect))
+	Rect hitRect = hitBox.actual;
+	Rect bodyRect = bodyBox.actual;
+	log("hitRect x=%f, y=%f", hitRect.origin.x, hitRect.origin.y);
+	log("bodyRect x=%f, y=%f", bodyRect.origin.x, bodyRect.origin.y);
+	if(hitRect.intersectsRect(bodyRect))
 	{
 		return true;
 	}
@@ -31,7 +33,8 @@ GameLayer::GameLayer()
 	m_pHero(NULL),
 	m_pEnemies(NULL),
 	m_pBlood(NULL),
-	m_pBloodBg(NULL)
+	m_pBloodBg(NULL),
+	m_pHeroBloodText(NULL)
 {
 
 }
@@ -69,7 +72,8 @@ bool GameLayer::init()
 		m_pHero->setAttack(5);
 		m_pHero->setHP(100);
 		m_pHero->setDirection(Point::ZERO);
-		//m_pHero->onDeadCallback = std::bind(&GameLayer::onHeroDead, this, m_pHero);
+		m_pHero->onDeadCallback = std::bind(&GameLayer::onHeroDead, this, m_pHero);
+
 
 		Sprite *pBloodSprite = Sprite::create("blood.jpg");
 		this->m_pBlood = ProgressTimer::create(pBloodSprite);
@@ -90,6 +94,12 @@ bool GameLayer::init()
 		this->m_pBloodBg->setPercentage(100);
 		this->m_pBloodBg->setScaleX(4.0f);
 
+		char heroStr[4];
+		sprintf(heroStr, "%d", m_pHero->getHP());
+		m_pHeroBloodText = LabelTTF::create(std::string(heroStr), "Arial", 25);
+		m_pHeroBloodText->setPosition(Point(winSize.width /2, winSize.height - 30));
+
+		this->addChild(m_pHeroBloodText);
 		this->addChild(m_pBloodBg, 100);
 		this->addChild(m_pBlood, 100);
 
@@ -155,10 +165,10 @@ void GameLayer::onHeroStop()
 	m_pHero->idle();
 }
 
-void GameLayer::onHeroDead()
+void GameLayer::onHeroDead(BaseSprite *pTarget)
 {
 	log("GameLayer::onHeroDead*******************");
-	m_pHero->remove();
+	pTarget->remove();
 }
 
 void GameLayer::update(float dt)
@@ -251,6 +261,7 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			{
 				break;
 			}
+			pEnemy->setPositionY(m_pHero->getPositionY());
 			BoundingBox heroBodyBox = m_pHero->getBodyBox();
 			BoundingBox enemyHitBox = pEnemy->getHitBox();
 
@@ -258,6 +269,10 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			{
 				int damage = pEnemy->getAttack();
 				m_pHero->hurt(damage);
+				log("hero hp=%d", m_pHero->getHP());
+				char heroStr[4];
+				sprintf(heroStr, "%d", m_pHero->getHP());
+				m_pHeroBloodText->setString(std::string(heroStr));
 			}
 		}
 	}
@@ -308,7 +323,7 @@ void GameLayer::addEnemy()
 	pEnemy->setVelocity(0.5f);
 	pEnemy->setDirection(Point::ZERO);
 	pEnemy->setEyeArea(200);
-	pEnemy->setAttackArea(50);
+	pEnemy->setAttackArea(30);
 
 	m_pEnemies->addObject(pEnemy);
 	m_pSpriteNodes->addChild(pEnemy);

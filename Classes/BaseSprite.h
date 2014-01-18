@@ -60,7 +60,7 @@ protected:
 
 
 	BoundingBox createBoundingBox(cocos2d::Point origin, cocos2d::Size size);
-	void transformBoxes();
+	void updateBoxes();
 
 private:
 	bool changeState(ActionState actionState);

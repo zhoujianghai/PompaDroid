@@ -18,7 +18,7 @@ public:
 	void onHeroWalk(cocos2d::Point direction, float distance);
 	void onHeroAttack();
 	void onHeroStop();
-	void onHeroDead();
+	void onHeroDead(BaseSprite *pTarget);
 
 	void onEnemyAttack(BaseSprite *pSprite);
 	void onEnemyDead(BaseSprite *pTarget);
@@ -42,6 +42,8 @@ private:
 
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;
+
+	cocos2d::LabelTTF *m_pHeroBloodText;
 };
 
 #endif
