@@ -96,6 +96,16 @@ void BaseSprite::onDead()
 	this->onDeadCallback();
 }
 
+bool BaseSprite::isLive()
+{
+	if(this->m_currActionState >= ACTION_STATE_DEAD)
+	{
+		return false;
+	}else {
+		return true;
+	}
+}
+
 bool BaseSprite::changeState(ActionState actionState)
 {
 	if((m_currActionState == ACTION_STATE_DEAD && actionState != ACTION_STATE_REMOVE) || m_currActionState == actionState)

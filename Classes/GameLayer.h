@@ -43,7 +43,6 @@ private:
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;
 
-	cocos2d::LabelTTF *m_pHeroBloodText;
 };
 
 #endif

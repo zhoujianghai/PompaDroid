@@ -51,6 +51,8 @@ public:
 
 	virtual void onDead();
 
+	virtual bool isLive();
+
 	cocos2d::CallFunc* createDeadCallbackFunc();
 
 	std::function<void(void)> onDeadCallback;

@@ -17,14 +17,6 @@ GameScene::~GameScene()
 
 }
 
-Scene* GameScene::createScene()
-{
-    Scene *pScene = Scene::create();
-    GameScene *pLayer = GameScene::create();
-    pScene->addChild(pLayer);
-
-    return pScene;
-}
 
 bool GameScene::init()
 {

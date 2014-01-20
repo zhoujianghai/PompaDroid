@@ -2,6 +2,8 @@
 #include "Hero.h"
 #include "Enemy.h"
 
+#include "SceneManager.h"
+
 using namespace cocos2d;
 
 long millisecondNow()
@@ -33,8 +35,7 @@ GameLayer::GameLayer()
 	m_pHero(NULL),
 	m_pEnemies(NULL),
 	m_pBlood(NULL),
-	m_pBloodBg(NULL),
-	m_pHeroBloodText(NULL)
+	m_pBloodBg(NULL)
 {
 
 }
@@ -82,7 +83,7 @@ bool GameLayer::init()
 		this->m_pBlood->setBarChangeRate(Point(1, 0));
 		this->m_pBlood->setAnchorPoint(Point(0, 1));
 		this->m_pBlood->setPosition(Point(2, winSize.height - 10));
-		this->m_pBlood->setPercentage(50);
+		this->m_pBlood->setPercentage(100);
 		this->m_pBlood->setScaleX(4.0f);
 
 		this->m_pBloodBg = ProgressTimer::create(Sprite::create("bloodBg.jpg"));
@@ -94,12 +95,6 @@ bool GameLayer::init()
 		this->m_pBloodBg->setPercentage(100);
 		this->m_pBloodBg->setScaleX(4.0f);
 
-		char heroStr[4];
-		sprintf(heroStr, "%d", m_pHero->getHP());
-		m_pHeroBloodText = LabelTTF::create(std::string(heroStr), "Arial", 25);
-		m_pHeroBloodText->setPosition(Point(winSize.width /2, winSize.height - 30));
-
-		this->addChild(m_pHeroBloodText);
 		this->addChild(m_pBloodBg, 100);
 		this->addChild(m_pBlood, 100);
 
@@ -124,35 +119,42 @@ bool GameLayer::init()
 
 void GameLayer::onHeroWalk(Point direction, float distance)
 {
-	m_pHero->setFlippedX(direction.x < 0 ? true : false);
-	m_pHero->walk();
+	if(m_pHero->isLive())
+	{
+		m_pHero->setFlippedX(direction.x < 0 ? true : false);
+		m_pHero->walk();
 
-	m_heroVelocity = direction * (distance < 96 ? 1 : 2);
+		m_heroVelocity = direction * (distance < 96 ? 1 : 2);
+	}
 }
 
 void GameLayer::onHeroAttack()
 {
-	m_pHero->attack();
-	
-	if(m_pHero->getCurrActionState() == ACTION_STATE_ATTACK)
-	{
-		Object *enemyObj = NULL;
-		CCARRAY_FOREACH(m_pEnemies, enemyObj)
-		{
-			Enemy *pEnemy = (Enemy*)enemyObj;
-			if(pEnemy->getCurrActionState() >= ACTION_STATE_DEAD)
-			{
-				continue;
-			}
-			if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
-			{
-				BoundingBox heroHitBox = m_pHero->getHitBox();
-				BoundingBox enemyBodyBox = pEnemy->getBodyBox();
 
-				if(::collisionDetection(heroHitBox, enemyBodyBox))
+	if(m_pHero->isLive())
+	{
+		m_pHero->attack();
+	
+		if(m_pHero->getCurrActionState() == ACTION_STATE_ATTACK)
+		{
+			Object *enemyObj = NULL;
+			CCARRAY_FOREACH(m_pEnemies, enemyObj)
+			{
+				Enemy *pEnemy = (Enemy*)enemyObj;
+				if(pEnemy->getCurrActionState() >= ACTION_STATE_DEAD)
 				{
-					int damage = m_pHero->getAttack();
-					pEnemy->hurt(damage);
+					continue;
+				}
+				if(fabsf(m_pHero->getPosition().y - pEnemy->getPosition().y) < 10)
+				{
+					BoundingBox heroHitBox = m_pHero->getHitBox();
+					BoundingBox enemyBodyBox = pEnemy->getBodyBox();
+
+					if(::collisionDetection(heroHitBox, enemyBodyBox))
+					{
+						int damage = m_pHero->getAttack();
+						pEnemy->hurt(damage);
+					}
 				}
 			}
 		}
@@ -162,13 +164,20 @@ void GameLayer::onHeroAttack()
 
 void GameLayer::onHeroStop()
 {
-	m_pHero->idle();
+	if(m_pHero->isLive())
+	{
+		m_pHero->idle();
+	}
 }
 
 void GameLayer::onHeroDead(BaseSprite *pTarget)
 {
-	log("GameLayer::onHeroDead*******************");
-	pTarget->remove();
+	if(m_pHero->getCurrActionState() == ACTION_STATE_DEAD)
+	{
+		log("GameLayer::onHeroDead*******************");
+		pTarget->remove();
+		SceneManager::getInstance()->showScene(GAME_OVER_SCENE);
+	}
 }
 
 void GameLayer::update(float dt)
@@ -215,16 +224,22 @@ void GameLayer::updateEnemies(float dt) {
 	}
 
 	Point heroLocation = m_pHero->getPosition();
+	if(!m_pHero->isLive())
+	{
+		heroLocation = Point(-1000, -1000);
+	}
+
     CCARRAY_FOREACH(m_pEnemies, pObj)
 	{
 		Enemy *pEnemy = (Enemy*)pObj;
-		pEnemy->execute(heroLocation);
 		if(pEnemy->getCurrActionState() == ACTION_STATE_REMOVE)
 		{
 			m_pEnemies->removeObject(pEnemy);
 			m_pSpriteNodes->removeChild(pEnemy, true);
 			continue;
 		}
+		pEnemy->execute(heroLocation);
+
 		if(pEnemy->getCurrActionState() == ACTION_STATE_WALK) 
 		{
 			++ alive;
@@ -257,7 +272,7 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 		Enemy *pEnemy = (Enemy*)enemyObj;
 		if(pEnemy->getCurrActionState() == ACTION_STATE_ATTACK)
 		{
-			if(m_pHero->getCurrActionState() >= ACTION_STATE_DEAD)
+			if(!m_pHero->isLive())
 			{
 				break;
 			}
@@ -269,10 +284,8 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			{
 				int damage = pEnemy->getAttack();
 				m_pHero->hurt(damage);
-				log("hero hp=%d", m_pHero->getHP());
-				char heroStr[4];
-				sprintf(heroStr, "%d", m_pHero->getHP());
-				m_pHeroBloodText->setString(std::string(heroStr));
+				//log("hero hp=%d", m_pHero->getHP());
+				this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
 			}
 		}
 	}
@@ -318,7 +331,7 @@ void GameLayer::addEnemy()
 	pEnemy->setPosition(location);
 	pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
 	pEnemy->idle();
-	pEnemy->setAttack(20);
+	pEnemy->setAttack(5);
 	pEnemy->setHP(30);
 	pEnemy->setVelocity(0.5f);
 	pEnemy->setDirection(Point::ZERO);
