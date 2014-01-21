@@ -29,12 +29,11 @@ bool OperateLayer::init()
 
 		this->hideJoystick();
 
-		auto dispatcher = Director::getInstance()->getEventDispatcher();
 		auto listener = EventListenerTouchAllAtOnce::create();
 		listener->onTouchesBegan = CC_CALLBACK_2(OperateLayer::onTouchesBegan, this);
 		listener->onTouchesMoved = CC_CALLBACK_2(OperateLayer::onTouchesMoved, this);
 		listener->onTouchesEnded = CC_CALLBACK_2(OperateLayer::onTouchesEnded, this); 
-		dispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+		_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
 		ret = true;
 

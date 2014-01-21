@@ -4,7 +4,7 @@
 
 using namespace cocos2d;
 
-cocos2d::Scene* createScene()
+Scene* GameScene::createScene()
 {
 	auto scene = Scene::createWithPhysics();
 	scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
@@ -23,6 +23,8 @@ cocos2d::Scene* createScene()
 	auto operateLayer = OperateLayer::create();
 	scene->addChild(operateLayer, 1);
 	operateLayer->setOperateDelegate(gameLayer);
+
+	return scene;
 }
 
 

@@ -111,6 +111,10 @@ bool GameLayer::init()
 			this->addEnemy();
 		}
 
+		auto contactListener = EventListenerPhysicsContact::create();
+		contactListener->onContactBegin = CC_CALLBACK_2(GameLayer::onContactBegin, this);
+		_eventDispatcher->addEventListenerWithSceneGraphPriority(contactListener, this);
+
 		this->scheduleUpdate();
 
 		ret = true;
@@ -153,11 +157,11 @@ void GameLayer::onHeroAttack()
 					BoundingBox heroHitBox = m_pHero->getHitBox();
 					BoundingBox enemyBodyBox = pEnemy->getBodyBox();
 
-					if(::collisionDetection(heroHitBox, enemyBodyBox))
-					{
-						int damage = m_pHero->getAttack();
-						pEnemy->hurt(damage);
-					}
+					//if(::collisionDetection(heroHitBox, enemyBodyBox))
+					//{
+					//	int damage = m_pHero->getAttack();
+					//	pEnemy->hurt(damage);
+					//}
 				}
 			}
 		}
@@ -283,13 +287,13 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			BoundingBox heroBodyBox = m_pHero->getBodyBox();
 			BoundingBox enemyHitBox = pEnemy->getHitBox();
 
-			if(::collisionDetection(enemyHitBox, heroBodyBox))
-			{
-				int damage = pEnemy->getAttack();
-				m_pHero->hurt(damage);
-				//log("hero hp=%d", m_pHero->getHP());
-				this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
-			}
+			//if(::collisionDetection(enemyHitBox, heroBodyBox))
+			//{
+			//	int damage = pEnemy->getAttack();
+			//	m_pHero->hurt(damage);
+			//	//log("hero hp=%d", m_pHero->getHP());
+			//	this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
+			//}
 		}
 	}
 }
@@ -346,4 +350,12 @@ void GameLayer::addEnemy()
 
 	m_pEnemies->addObject(pEnemy);
 	m_pSpriteNodes->addChild(pEnemy);
+}
+
+bool GameLayer::onContactBegin(EventCustom *pEvent, const PhysicsContact &contact)
+{
+	auto spa = (Sprite*)contact.getShapeA()->getBody()->getNode();
+	auto spb = (Sprite*)contact.getShapeB()->getBody()->getNode();
+	log("tagA=%d, tagB=%d", spa->getTag(), spb->getTag());
+	return true;
 }

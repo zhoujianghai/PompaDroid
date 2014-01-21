@@ -40,6 +40,8 @@ public:
 		this->m_pWorld = pWorld;
 	};
 
+	bool onContactBegin(cocos2d::EventCustom *pEvent, const cocos2d::PhysicsContact &contact);
+
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;
 	Hero *m_pHero;
