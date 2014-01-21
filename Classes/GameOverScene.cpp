@@ -41,26 +41,10 @@ void GameOverLayer::restartGame()
 	SceneManager::getInstance()->showScene(GAME_SCENE);
 }
 
-GameOverScene::GameOverScene()
-	:m_pLayer(NULL)
+Scene* GameOverScene::createScene()
 {
-
-}
-
-GameOverScene::~GameOverScene()
-{
-
-}
-
-
-bool GameOverScene::init()
-{
-	bool ret = false;
-	if(Scene::init())
-	{
-		m_pLayer = GameOverLayer::create();
-		this->addChild(m_pLayer);
-		ret = true;
-	}
-	return ret;
+	auto scene = Scene::create();
+	auto layer = GameOverLayer::create();
+	scene->addChild(layer);
+	return scene;
 }

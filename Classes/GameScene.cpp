@@ -4,34 +4,25 @@
 
 using namespace cocos2d;
 
-
-GameScene::GameScene():
-	m_pGameLayer(NULL),
-	m_pOperateLayer(NULL)
+cocos2d::Scene* createScene()
 {
+	auto scene = Scene::createWithPhysics();
+	scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	auto body = PhysicsBody::createEdgeBox(visibleSize, PHYSICSBODY_MATERIAL_DEFAULT, 3.0f);
+	auto edgeNode = Node::create();
+	edgeNode->setPosition( Point(visibleSize.width / 2, visibleSize.height / 2) );
+	edgeNode->setPhysicsBody(body);
+	scene->addChild(edgeNode);
 
+	auto gameLayer = GameLayer::create();
+	gameLayer->setPhysicsWorld(scene->getPhysicsWorld());
+	scene->addChild(gameLayer, 0);
+
+	auto operateLayer = OperateLayer::create();
+	scene->addChild(operateLayer, 1);
+	operateLayer->setOperateDelegate(gameLayer);
 }
 
-GameScene::~GameScene()
-{
-
-}
-
-
-bool GameScene::init()
-{
-	bool ret = false;
-	do {
-		CC_BREAK_IF( !Scene::init() );
-		m_pGameLayer = GameLayer::create();
-		this->addChild(m_pGameLayer, 0);
-		m_pOperateLayer = OperateLayer::create();
-		this->addChild(m_pOperateLayer, 1);
-		m_pOperateLayer->setOperateDelegate(m_pGameLayer);
-
-		ret = true;
-	}while(0);
-
-	return ret;
-}
 

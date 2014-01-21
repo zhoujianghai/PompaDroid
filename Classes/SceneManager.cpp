@@ -22,10 +22,10 @@ void SceneManager::showScene(SceneType sceneType)
 	switch(sceneType)
 	{
 	case GAME_SCENE:
-		pScene = GameScene::create();
+		pScene = GameScene::createScene();
 		break;
 	case GAME_OVER_SCENE:
-		pScene = GameOverScene::create();
+		pScene = GameOverScene::createScene();
 		break;
 	}
 

@@ -18,18 +18,10 @@ public:
 	CC_SYNTHESIZE_READONLY(cocos2d::LabelTTF*, m_pLabel, GameOverLabel);
 };
 
-class GameOverScene : public cocos2d::Scene
+class GameOverScene
 {
 public:
-	GameOverScene();
-	~GameOverScene();
-
-	bool init();
-
-	CREATE_FUNC(GameOverScene);
-
-	CC_SYNTHESIZE_READONLY(GameOverLayer*, m_pLayer, GameOverLayer);
-
+	static cocos2d::Scene* createScene();
 };
 
 #endif

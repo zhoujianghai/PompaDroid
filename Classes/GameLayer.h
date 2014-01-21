@@ -4,6 +4,12 @@
 #include <cocos2d.h>
 #include "OperateDelegate.h"
 
+typedef enum
+{
+	SPRITE_TAG_HERO = 1,
+	SPRITE_TAG_ENEMY
+}SpriteTag;
+
 class BaseSprite;
 class Hero;
 class GameLayer : public cocos2d::Layer, public OperateDelegate
@@ -29,6 +35,11 @@ public:
 	void updateHero(float dt);
 	void updateEnemies(float dt);
 
+	void setPhysicsWorld(cocos2d::PhysicsWorld* pWorld)
+	{
+		this->m_pWorld = pWorld;
+	};
+
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;
 	Hero *m_pHero;
@@ -42,6 +53,8 @@ private:
 
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;
+
+	cocos2d::PhysicsWorld* m_pWorld;
 
 };
 

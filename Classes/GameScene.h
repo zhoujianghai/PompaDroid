@@ -3,21 +3,11 @@
 
 #include <cocos2d.h>
 
-class GameLayer;
-class OperateLayer;
-
-class GameScene : public cocos2d::Scene
+class GameScene
 {
 public:
-	GameScene();
-	~GameScene();
 
-	virtual bool init();
-
-	CREATE_FUNC(GameScene);
-
-	CC_SYNTHESIZE(GameLayer*, m_pGameLayer, GameLayer);
-	CC_SYNTHESIZE(OperateLayer*, m_pOperateLayer, OperateLayer);
+	static cocos2d::Scene* createScene();
 };
 
 

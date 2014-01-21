@@ -35,7 +35,8 @@ GameLayer::GameLayer()
 	m_pHero(NULL),
 	m_pEnemies(NULL),
 	m_pBlood(NULL),
-	m_pBloodBg(NULL)
+	m_pBloodBg(NULL),
+	m_pWorld(NULL)
 {
 
 }
@@ -74,7 +75,9 @@ bool GameLayer::init()
 		m_pHero->setHP(100);
 		m_pHero->setDirection(Point::ZERO);
 		m_pHero->onDeadCallback = std::bind(&GameLayer::onHeroDead, this, m_pHero);
-
+		m_pHero->setTag(SPRITE_TAG_HERO);
+		auto heroBody = PhysicsBody::createCircle(m_pHero->getContentSize().width / 2);
+		m_pHero->setPhysicsBody(heroBody);
 
 		Sprite *pBloodSprite = Sprite::create("blood.jpg");
 		this->m_pBlood = ProgressTimer::create(pBloodSprite);
@@ -337,6 +340,9 @@ void GameLayer::addEnemy()
 	pEnemy->setDirection(Point::ZERO);
 	pEnemy->setEyeArea(200);
 	pEnemy->setAttackArea(30);
+	pEnemy->setTag(SPRITE_TAG_ENEMY);
+	auto enemyBody = PhysicsBody::createCircle(pEnemy->getContentSize().width / 2);
+	pEnemy->setPhysicsBody(enemyBody);
 
 	m_pEnemies->addObject(pEnemy);
 	m_pSpriteNodes->addChild(pEnemy);
