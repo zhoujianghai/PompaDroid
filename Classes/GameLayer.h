@@ -4,22 +4,17 @@
 #include <cocos2d.h>
 #include "OperateDelegate.h"
 
-typedef enum
-{
-	SPRITE_TAG_HERO = 1,
-	SPRITE_TAG_ENEMY
-}SpriteTag;
+#define MIN_ENEMY_COUNT 5
 
 class BaseSprite;
 class Hero;
-class GameLayer : public cocos2d::Layer, public OperateDelegate
+class GameLayer : public cocos2d::Layer
 {
 public:
 	GameLayer();
 	~GameLayer();
 
 	virtual bool init();
-	CREATE_FUNC(GameLayer);
 
 	void onHeroWalk(cocos2d::Point direction, float distance);
 	void onHeroAttack();
@@ -28,23 +23,19 @@ public:
 
 	void onEnemyAttack(BaseSprite *pSprite);
 	void onEnemyDead(BaseSprite *pTarget);
-	void addEnemy();
 
+	void addEnemy();
 
 	void update(float dt);
 	void updateHero(float dt);
 	void updateEnemies(float dt);
 
-	void setPhysicsWorld(cocos2d::PhysicsWorld* pWorld)
-	{
-		this->m_pWorld = pWorld;
-	};
+	CC_SYNTHESIZE_READONLY(Hero*, m_pHero, Hero);
 
-	bool onContactBegin(cocos2d::EventCustom *pEvent, const cocos2d::PhysicsContact &contact);
+	CREATE_FUNC(GameLayer);
 
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;
-	Hero *m_pHero;
 	cocos2d::Array *m_pEnemies;
 	cocos2d::SpriteBatchNode *m_pSpriteNodes;
 	cocos2d::Point m_heroVelocity;
@@ -55,9 +46,6 @@ private:
 
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;
-
-	cocos2d::PhysicsWorld* m_pWorld;
-
 };
 
 #endif

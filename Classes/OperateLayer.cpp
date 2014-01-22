@@ -1,5 +1,5 @@
 #include "OperateLayer.h"
-#include "OperateDelegate.h"
+#include "hero.h"
 
 using namespace cocos2d;
 using namespace std;
@@ -61,13 +61,14 @@ void OperateLayer::hideJoystick()
 void OperateLayer::updateJoystick(Point direction, float distance)
 {
 	Point start = m_pJoystickBg->getPosition();
-	if(distance < 32)
+
+	if(distance < 33)
 	{
 		m_pJoystick->setPosition(start + (direction * distance));
-	}else if(distance > 96) {
-		m_pJoystick->setPosition(start + (direction * 64));
+	}else if(distance > 78) {
+		m_pJoystick->setPosition(start + (direction * 45));
 	}else {
-		m_pJoystick->setPosition(start + (direction * 32));
+		m_pJoystick->setPosition(start + (direction * 33));
 	}
 }
 
@@ -84,7 +85,7 @@ void OperateLayer::onTouchesBegan(const vector<Touch*>& touches, Event *unused_e
 		{
 			this->showJoystick(p);
 		}else {
-			m_pOperDelegate->onHeroAttack();
+			m_pHero->attack();
 		}
 
 		++ touchIter;
@@ -106,11 +107,11 @@ void OperateLayer::onTouchesMoved(const vector<Touch*>& touches, Event *unused_e
 	Point direction = (dest - start).normalize();
 	this->updateJoystick(direction, distance);
 
-	m_pOperDelegate->onHeroWalk(direction, distance);
+	m_pHero->walk(direction, distance);
 }
 
 void OperateLayer::onTouchesEnded(const vector<Touch*>& touches, Event *unused_event)
 {
 	this->hideJoystick();
-	m_pOperDelegate->onHeroStop();
+	m_pHero->stop();
 }

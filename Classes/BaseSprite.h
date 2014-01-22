@@ -25,12 +25,12 @@ public:
 	BaseSprite();
 	~BaseSprite();
 
-	void idle();
-	void walk();
-	void attack();
-	void hurt(int damage);
-	void remove();
-	void dead();
+	void runIdleAction();
+	void runWalkAction();
+	void runAttackAction();
+	void runHurtAction(int damage);
+	void removeSprite();
+	void runDeadAction();
 
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pIdleAction, IdleAction);
 	CC_SYNTHESIZE_RETAIN(cocos2d::Action*, m_pWalkAction, WalkAction);
@@ -51,11 +51,16 @@ public:
 
 	virtual void onDead();
 
+	virtual void onAttackActionFinish();
+
 	virtual bool isLive();
 
 	cocos2d::CallFunc* createDeadCallbackFunc();
+	cocos2d::CallFunc* createIdleCallbackFunc();
 
 	std::function<void(void)> onDeadCallback;
+
+	std::function<void(void)> attack;
 
 protected:
 	static cocos2d::Animation* createAnimation(const char* formatStr, int frameCount, int fps);

@@ -3,7 +3,7 @@
 
 #include <cocos2d.h>
 
-class OperateDelegate;
+class Hero;
 class OperateLayer : public cocos2d::Layer
 {
 public:
@@ -18,7 +18,7 @@ public:
 	void onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *unused_event);
 	void onTouchesEnded(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *unused_event);
 
-	CC_SYNTHESIZE(OperateDelegate*, m_pOperDelegate, OperateDelegate);
+	CC_SYNTHESIZE(Hero*, m_pHero, Hero);
 
 private:
 	void showJoystick(cocos2d::Point pos);

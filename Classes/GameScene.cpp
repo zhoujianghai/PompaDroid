@@ -6,23 +6,14 @@ using namespace cocos2d;
 
 Scene* GameScene::createScene()
 {
-	auto scene = Scene::createWithPhysics();
-	scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	auto scene = Scene::create();
 	
-	Size visibleSize = Director::getInstance()->getVisibleSize();
-	auto body = PhysicsBody::createEdgeBox(visibleSize, PHYSICSBODY_MATERIAL_DEFAULT, 3.0f);
-	auto edgeNode = Node::create();
-	edgeNode->setPosition( Point(visibleSize.width / 2, visibleSize.height / 2) );
-	edgeNode->setPhysicsBody(body);
-	scene->addChild(edgeNode);
-
 	auto gameLayer = GameLayer::create();
-	gameLayer->setPhysicsWorld(scene->getPhysicsWorld());
 	scene->addChild(gameLayer, 0);
 
 	auto operateLayer = OperateLayer::create();
 	scene->addChild(operateLayer, 1);
-	operateLayer->setOperateDelegate(gameLayer);
+	operateLayer->setHero(gameLayer->getHero());
 
 	return scene;
 }

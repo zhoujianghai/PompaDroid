@@ -16,8 +16,6 @@ bool Enemy::init()
 	do {
 		this->initWithSpriteFrameName("robot_idle_00.png");
 
-		CallFunc *pCallbackIdle = CallFunc::create(std::bind(&Enemy::idle, this));
-
 		Animation *pIdleAnim = this->createAnimation("robot_idle_%02d.png", 5, 12);
 		this->setIdleAction(RepeatForever::create(Animate::create(pIdleAnim)));
 
@@ -25,10 +23,10 @@ bool Enemy::init()
 		this->setWalkAction(RepeatForever::create(Animate::create(pWalkAnim)));
 		
 		Animation *pAttackAnim = this->createAnimation("robot_attack_%02d.png", 5, 20);
-		this->setAttackAction(Sequence::create(Animate::create(pAttackAnim), pCallbackIdle, NULL));
+		this->setAttackAction(Sequence::create(Animate::create(pAttackAnim), BaseSprite::createIdleCallbackFunc(), NULL));
 
 		Animation *pHurtAnim = this->createAnimation("robot_hurt_%02d.png", 3, 20);
-		this->setHurtAction(Sequence::create(Animate::create(pHurtAnim), pCallbackIdle, NULL));
+		this->setHurtAction(Sequence::create(Animate::create(pHurtAnim), BaseSprite::createIdleCallbackFunc(), NULL));
 
 		Animation *pDeadAnim = this->createAnimation("robot_knockout_%02d.png", 5, 12);
 		this->setDeadAction(Sequence::create(Animate::create(pDeadAnim), Blink::create(3, 9), BaseSprite::createDeadCallbackFunc(), NULL));
@@ -46,20 +44,21 @@ bool Enemy::init()
 
 
 
-void Enemy::execute(const Point& target)
+void Enemy::execute(const Point& target, float targetBodyWidth)
 {
 	if(m_nextDecisionTime == 0)
 	{
-		this->decide(target);
+		this->decide(target, targetBodyWidth);
 	}else {
 		-- m_nextDecisionTime;
 	}
 }
 
-void Enemy::decide(const Point& target)
+void Enemy::decide(const Point& target, float targetBodyWidth)
 {
 	Point location = this->getPosition();
 	float distance = location.getDistance(target);
+	distance = distance - (targetBodyWidth / 2 + this->getDisplayFrame()->getRect().size.width / 2) + 30;
 	//log("distance=%f, m_fVelocity=%f", distance, m_fVelocity);
 
 	bool isFlippedX = this->isFlippedX();
@@ -78,20 +77,20 @@ void Enemy::decide(const Point& target)
 	{
 	case AI_ATTACK:
 		{
+			this->runAttackAction();
 			this->attack();
-			this->onAttack();
 			this->m_nextDecisionTime = 50;
 		}
 		break;
 	case AI_IDLE:
 		{
-			this->idle();
+			this->runIdleAction();
 			this->m_nextDecisionTime = CCRANDOM_0_1() * 100;
 		}
 		break;
 	case AI_PATROL:
 		{
-			this->walk();
+			this->runWalkAction();
 			this->m_moveDirection.x = CCRANDOM_MINUS1_1();
 			this->m_moveDirection.y = CCRANDOM_MINUS1_1();
 			m_moveDirection.x  = m_moveDirection.x > 0 ? (m_moveDirection.x + m_fVelocity) : (m_moveDirection.x - m_fVelocity);
@@ -101,7 +100,7 @@ void Enemy::decide(const Point& target)
 		break;
 	case AI_PURSUIT:
 		{
-			this->walk();
+			this->runWalkAction();
 			//v.normalize() function return the unit vector of v
 			this->m_moveDirection = (target - location).normalize();
 			this->setFlippedX(m_moveDirection.x < 0 ? true : false);

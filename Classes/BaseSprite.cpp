@@ -21,7 +21,7 @@ BaseSprite::~BaseSprite()
 	CC_SAFE_RELEASE_NULL(m_pDeadAction);
 }
 
-void BaseSprite::idle()
+void BaseSprite::runIdleAction()
 {
 	if(changeState(ACTION_STATE_IDLE))
 	{
@@ -29,7 +29,7 @@ void BaseSprite::idle()
 	}
 }
 	
-void BaseSprite::walk()
+void BaseSprite::runWalkAction()
 {
 	if(changeState(ACTION_STATE_WALK))
 	{
@@ -37,7 +37,7 @@ void BaseSprite::walk()
 	}
 }
 
-void BaseSprite::attack()
+void BaseSprite::runAttackAction()
 {
 	if(changeState(ACTION_STATE_ATTACK))
 	{
@@ -45,7 +45,7 @@ void BaseSprite::attack()
 	}
 }
 
-void BaseSprite::hurt(int damage)
+void BaseSprite::runHurtAction(int damage)
 {
 	if(changeState(ACTION_STATE_HURT))
 	{
@@ -54,12 +54,12 @@ void BaseSprite::hurt(int damage)
 		log("m_hp=%d damage=%d", this->m_hp, damage);
 		if(this->m_hp <= 0)
 		{
-			this->dead();
+			this->runDeadAction();
 		}
 	}
 }
 
-void BaseSprite::dead()
+void BaseSprite::runDeadAction()
 {
 	if(changeState(ACTION_STATE_DEAD))
 	{
@@ -68,10 +68,10 @@ void BaseSprite::dead()
 	}
 }
 
-void BaseSprite::remove()
+void BaseSprite::removeSprite()
 {
 	changeState(ACTION_STATE_REMOVE);
-	log("BaseSprite::remove m_currActionState=%d", m_currActionState);
+	log("BaseSprite::removeSprite m_currActionState=%d", m_currActionState);
 }
 
 Animation* BaseSprite::createAnimation(const char* formatStr, int frameCount, int fps)
@@ -91,9 +91,19 @@ CallFunc* BaseSprite::createDeadCallbackFunc()
 	return CallFunc::create( CC_CALLBACK_0(BaseSprite::onDead, this));
 }
 
+CallFunc* BaseSprite::createIdleCallbackFunc()
+{
+	return  CallFunc::create(CC_CALLBACK_0(BaseSprite::runIdleAction, this));
+}
+
 void BaseSprite::onDead()
 {
 	this->onDeadCallback();
+}
+
+void BaseSprite::onAttackActionFinish()
+{
+
 }
 
 bool BaseSprite::isLive()

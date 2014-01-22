@@ -6,19 +6,10 @@
 
 using namespace cocos2d;
 
-long millisecondNow()
-{
-	struct timeval now_t;
-	gettimeofday(&now_t,NULL);      
-	return now_t.tv_sec * 1000 + now_t.tv_usec / 1000;  
-}
-
 bool collisionDetection(const BoundingBox &hitBox, const BoundingBox &bodyBox)
 {
 	Rect hitRect = hitBox.actual;
 	Rect bodyRect = bodyBox.actual;
-	log("hitRect x=%f, y=%f", hitRect.origin.x, hitRect.origin.y);
-	log("bodyRect x=%f, y=%f", bodyRect.origin.x, bodyRect.origin.y);
 	if(hitRect.intersectsRect(bodyRect))
 	{
 		return true;
@@ -27,7 +18,6 @@ bool collisionDetection(const BoundingBox &hitBox, const BoundingBox &bodyBox)
 	return false;
 }
 
-#define CURTIME millisecondNow()
 
 GameLayer::GameLayer()
 	:m_pTiledMap(NULL),
@@ -35,8 +25,7 @@ GameLayer::GameLayer()
 	m_pHero(NULL),
 	m_pEnemies(NULL),
 	m_pBlood(NULL),
-	m_pBloodBg(NULL),
-	m_pWorld(NULL)
+	m_pBloodBg(NULL)
 {
 
 }
@@ -69,17 +58,17 @@ bool GameLayer::init()
 
 		m_pHero = Hero::create();
 		m_pHero->setPosition( Point(100, 100) );
-		m_pHero->idle();
+		m_pHero->runIdleAction();
 		m_pHero->setZOrder(m_fScreenHeight - m_pHero->getPositionY());
 		m_pHero->setAttack(5);
 		m_pHero->setHP(100);
 		m_pHero->setDirection(Point::ZERO);
-		m_pHero->onDeadCallback = std::bind(&GameLayer::onHeroDead, this, m_pHero);
-		m_pHero->setTag(SPRITE_TAG_HERO);
-		auto heroBody = PhysicsBody::createCircle(m_pHero->getContentSize().width / 2);
-		m_pHero->setPhysicsBody(heroBody);
+		m_pHero->onDeadCallback = CC_CALLBACK_0(GameLayer::onHeroDead, this, m_pHero);
+		m_pHero->attack = CC_CALLBACK_0(GameLayer::onHeroAttack, this);
+		m_pHero->stop = CC_CALLBACK_0(GameLayer::onHeroStop, this);
+		m_pHero->walk = CC_CALLBACK_2(GameLayer::onHeroWalk, this);
 
-		Sprite *pBloodSprite = Sprite::create("blood.jpg");
+		Sprite *pBloodSprite = Sprite::create("blood.png");
 		this->m_pBlood = ProgressTimer::create(pBloodSprite);
 		this->m_pBlood->setType(ProgressTimer::Type::BAR);
 		this->m_pBlood->setMidpoint(Point(0, 0));
@@ -87,33 +76,26 @@ bool GameLayer::init()
 		this->m_pBlood->setAnchorPoint(Point(0, 1));
 		this->m_pBlood->setPosition(Point(2, winSize.height - 10));
 		this->m_pBlood->setPercentage(100);
-		this->m_pBlood->setScaleX(4.0f);
 
-		this->m_pBloodBg = ProgressTimer::create(Sprite::create("bloodBg.jpg"));
+		this->m_pBloodBg = ProgressTimer::create(Sprite::create("bloodBg.png"));
 		this->m_pBloodBg->setType(ProgressTimer::Type::BAR);
 		this->m_pBloodBg->setMidpoint(Point(0, 0));
 		this->m_pBloodBg->setBarChangeRate(Point(1, 0));
 		this->m_pBloodBg->setAnchorPoint(Point(0, 1));
 		this->m_pBloodBg->setPosition(Point(2, winSize.height - 10));
 		this->m_pBloodBg->setPercentage(100);
-		this->m_pBloodBg->setScaleX(4.0f);
 
 		this->addChild(m_pBloodBg, 100);
 		this->addChild(m_pBlood, 100);
 
 		m_pSpriteNodes->addChild(m_pHero);
 
-		const int enemyCount = 3;
-		m_pEnemies = Array::createWithCapacity(enemyCount);
+		m_pEnemies = Array::createWithCapacity(MIN_ENEMY_COUNT);
 		m_pEnemies->retain();
-		for(int i = 0; i < enemyCount; ++ i)
+		for(int i = 0; i < MIN_ENEMY_COUNT; ++ i)
 		{
 			this->addEnemy();
 		}
-
-		auto contactListener = EventListenerPhysicsContact::create();
-		contactListener->onContactBegin = CC_CALLBACK_2(GameLayer::onContactBegin, this);
-		_eventDispatcher->addEventListenerWithSceneGraphPriority(contactListener, this);
 
 		this->scheduleUpdate();
 
@@ -129,7 +111,7 @@ void GameLayer::onHeroWalk(Point direction, float distance)
 	if(m_pHero->isLive())
 	{
 		m_pHero->setFlippedX(direction.x < 0 ? true : false);
-		m_pHero->walk();
+		m_pHero->runWalkAction();
 
 		m_heroVelocity = direction * (distance < 96 ? 1 : 2);
 	}
@@ -140,7 +122,7 @@ void GameLayer::onHeroAttack()
 
 	if(m_pHero->isLive())
 	{
-		m_pHero->attack();
+		m_pHero->runAttackAction();
 	
 		if(m_pHero->getCurrActionState() == ACTION_STATE_ATTACK)
 		{
@@ -157,11 +139,11 @@ void GameLayer::onHeroAttack()
 					BoundingBox heroHitBox = m_pHero->getHitBox();
 					BoundingBox enemyBodyBox = pEnemy->getBodyBox();
 
-					//if(::collisionDetection(heroHitBox, enemyBodyBox))
-					//{
-					//	int damage = m_pHero->getAttack();
-					//	pEnemy->hurt(damage);
-					//}
+					if(::collisionDetection(heroHitBox, enemyBodyBox))
+					{
+						int damage = m_pHero->getAttack();
+						pEnemy->runHurtAction(damage);
+					}
 				}
 			}
 		}
@@ -173,7 +155,7 @@ void GameLayer::onHeroStop()
 {
 	if(m_pHero->isLive())
 	{
-		m_pHero->idle();
+		m_pHero->runIdleAction();
 	}
 }
 
@@ -182,7 +164,7 @@ void GameLayer::onHeroDead(BaseSprite *pTarget)
 	if(m_pHero->getCurrActionState() == ACTION_STATE_DEAD)
 	{
 		log("GameLayer::onHeroDead*******************");
-		pTarget->remove();
+		pTarget->removeSprite();
 		SceneManager::getInstance()->showScene(GAME_OVER_SCENE);
 	}
 }
@@ -211,6 +193,9 @@ void GameLayer::updateHero(float dt)
 		if(expectP.x > halfWinWidth && expectP.x <= (mapWidth - halfWinWidth))
 		{
 			this->setPositionX(this->getPositionX() - m_heroVelocity.x);
+			this->m_pBlood->setPositionX(this->m_pBlood->getPositionX() + m_heroVelocity.x);
+			this->m_pBloodBg->setPositionX(this->m_pBloodBg->getPositionX() + m_heroVelocity.x);
+
 		}else if(expectP.x < halfHeroFrameWidth || expectP.x >= mapWidth - halfHeroFrameWidth)
 		{
 			actualP.x = m_pHero->getPositionX();
@@ -221,11 +206,10 @@ void GameLayer::updateHero(float dt)
 }
 
 void GameLayer::updateEnemies(float dt) {
-	int alive = 0;
     Object *pObj = NULL;
 	Point distance = Point::ZERO;
 	//log("enemies count = %d", m_pEnemies->count());
-	if(m_pEnemies->count() < 3)
+	if(m_pEnemies->count() < MIN_ENEMY_COUNT)
 	{
 		this->addEnemy();
 	}
@@ -235,21 +219,19 @@ void GameLayer::updateEnemies(float dt) {
 	{
 		heroLocation = Point(-1000, -1000);
 	}
-
+	Array *pRemovedEnemies = Array::create();
     CCARRAY_FOREACH(m_pEnemies, pObj)
 	{
 		Enemy *pEnemy = (Enemy*)pObj;
 		if(pEnemy->getCurrActionState() == ACTION_STATE_REMOVE)
 		{
-			m_pEnemies->removeObject(pEnemy);
-			m_pSpriteNodes->removeChild(pEnemy, true);
+			pRemovedEnemies->addObject(pEnemy);
 			continue;
 		}
-		pEnemy->execute(heroLocation);
+		pEnemy->execute(heroLocation, m_pHero->getDisplayFrame()->getRect().size.width);
 
 		if(pEnemy->getCurrActionState() == ACTION_STATE_WALK) 
 		{
-			++ alive;
 			Point location = pEnemy->getPosition();
 			Point direction = pEnemy->getMoveDirection();
 			
@@ -264,11 +246,15 @@ void GameLayer::updateEnemies(float dt) {
 			pEnemy->setZOrder(pEnemy->getPositionY());
 		}
 	}
-	//if(alive == 0 && m_pEnemies->count() > 0)
-	//{
-	//	m_pEnemies->removeAllObjects();
-	//}
 
+	CCARRAY_FOREACH(pRemovedEnemies, pObj)
+	{
+		Enemy *pEnemy = (Enemy*)pObj;
+		m_pEnemies->removeObject(pEnemy);
+		m_pSpriteNodes->removeChild(pEnemy, true);
+	}
+
+	pRemovedEnemies->removeAllObjects();
 }
 
 void GameLayer::onEnemyAttack(BaseSprite *pSprite)
@@ -287,21 +273,20 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			BoundingBox heroBodyBox = m_pHero->getBodyBox();
 			BoundingBox enemyHitBox = pEnemy->getHitBox();
 
-			//if(::collisionDetection(enemyHitBox, heroBodyBox))
-			//{
-			//	int damage = pEnemy->getAttack();
-			//	m_pHero->hurt(damage);
-			//	//log("hero hp=%d", m_pHero->getHP());
-			//	this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
-			//}
+			if(::collisionDetection(enemyHitBox, heroBodyBox))
+			{
+				int damage = pEnemy->getAttack();
+				m_pHero->runHurtAction(damage);
+				//log("hero hp=%d", m_pHero->getHP());
+				this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
+			}
 		}
 	}
 }
 
 void GameLayer::onEnemyDead(BaseSprite *pTarget)
 {
-	log("GameLayer::onEnemyDead*******************");
-	pTarget->remove();
+	pTarget->removeSprite();
 }
 
 void GameLayer::addEnemy()
@@ -333,29 +318,18 @@ void GameLayer::addEnemy()
 		location.y = halfEnemyFrameHeight;
 	}
 
-	pEnemy->onAttack = std::bind(&GameLayer::onEnemyAttack, this, pEnemy);
-	pEnemy->onDeadCallback = std::bind(&GameLayer::onEnemyDead, this, pEnemy);
+	pEnemy->attack = CC_CALLBACK_0(GameLayer::onEnemyAttack, this, pEnemy);
+	pEnemy->onDeadCallback = CC_CALLBACK_0(GameLayer::onEnemyDead, this, pEnemy);
 	pEnemy->setPosition(location);
 	pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
-	pEnemy->idle();
+	pEnemy->runIdleAction();
 	pEnemy->setAttack(5);
 	pEnemy->setHP(30);
 	pEnemy->setVelocity(0.5f);
 	pEnemy->setDirection(Point::ZERO);
 	pEnemy->setEyeArea(200);
-	pEnemy->setAttackArea(30);
-	pEnemy->setTag(SPRITE_TAG_ENEMY);
-	auto enemyBody = PhysicsBody::createCircle(pEnemy->getContentSize().width / 2);
-	pEnemy->setPhysicsBody(enemyBody);
+	pEnemy->setAttackArea(25);
 
 	m_pEnemies->addObject(pEnemy);
 	m_pSpriteNodes->addChild(pEnemy);
-}
-
-bool GameLayer::onContactBegin(EventCustom *pEvent, const PhysicsContact &contact)
-{
-	auto spa = (Sprite*)contact.getShapeA()->getBody()->getNode();
-	auto spb = (Sprite*)contact.getShapeB()->getBody()->getNode();
-	log("tagA=%d, tagB=%d", spa->getTag(), spb->getTag());
-	return true;
 }
