@@ -3,6 +3,7 @@
 #include "Enemy.h"
 
 #include "SceneManager.h"
+#include "SimpleAudioEngine.h"
 
 using namespace cocos2d;
 
@@ -42,9 +43,16 @@ bool GameLayer::init()
 	do {
 		CC_BREAK_IF( !Layer::init());
 
-		Size winSize = Director::getInstance()->getWinSize();
-		m_fScreenWidth = winSize.width;
-		m_fScreenHeight = winSize.height;
+		auto visibleSize = Director::getInstance()->getVisibleSize();
+		this->m_origin = Director::getInstance()->getVisibleOrigin();
+		this->m_fScreenWidth = visibleSize.width;
+		this->m_fScreenHeight = visibleSize.height;
+
+		m_pCloseItem = MenuItemImage::create("CloseNormal.png", "CloseSelected.png", CC_CALLBACK_1(GameLayer::exitApp, this));
+		m_pCloseItem->setPosition(this->m_origin + Point(visibleSize) - Point(m_pCloseItem->getContentSize() / 2));
+		auto menu = Menu::create(m_pCloseItem, NULL);
+		menu->setPosition(Point::ZERO);
+		this->addChild(menu, 1);
 
 		m_pTiledMap = TMXTiledMap::create("pd_tilemap.tmx");
 		this->addChild(m_pTiledMap);
@@ -57,7 +65,7 @@ bool GameLayer::init()
 		this->addChild(m_pSpriteNodes);
 
 		m_pHero = Hero::create();
-		m_pHero->setPosition( Point(100, 100) );
+		m_pHero->setPosition( m_origin + Point(100, 100) );
 		m_pHero->runIdleAction();
 		m_pHero->setZOrder(m_fScreenHeight - m_pHero->getPositionY());
 		m_pHero->setAttack(5);
@@ -74,7 +82,7 @@ bool GameLayer::init()
 		this->m_pBlood->setMidpoint(Point(0, 0));
 		this->m_pBlood->setBarChangeRate(Point(1, 0));
 		this->m_pBlood->setAnchorPoint(Point(0, 1));
-		this->m_pBlood->setPosition(Point(2, winSize.height - 10));
+		this->m_pBlood->setPosition(m_origin + Point(2, m_fScreenHeight - 10));
 		this->m_pBlood->setPercentage(100);
 
 		this->m_pBloodBg = ProgressTimer::create(Sprite::create("bloodBg.png"));
@@ -82,7 +90,7 @@ bool GameLayer::init()
 		this->m_pBloodBg->setMidpoint(Point(0, 0));
 		this->m_pBloodBg->setBarChangeRate(Point(1, 0));
 		this->m_pBloodBg->setAnchorPoint(Point(0, 1));
-		this->m_pBloodBg->setPosition(Point(2, winSize.height - 10));
+		this->m_pBloodBg->setPosition(this->m_pBlood->getPosition());
 		this->m_pBloodBg->setPercentage(100);
 
 		this->addChild(m_pBloodBg, 100);
@@ -97,12 +105,19 @@ bool GameLayer::init()
 			this->addEnemy();
 		}
 
+		CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic(PATH_BG_MUSIC, true);
+
 		this->scheduleUpdate();
 
 		ret = true;
 	} while(0);
 
 	return ret;
+}
+
+void GameLayer::exitApp(Object* pSender)
+{
+	Director::getInstance()->end();
 }
 
 
@@ -143,6 +158,7 @@ void GameLayer::onHeroAttack()
 					{
 						int damage = m_pHero->getAttack();
 						pEnemy->runHurtAction(damage);
+						CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_HERO_HIT_EFFECT);
 					}
 				}
 			}
@@ -164,6 +180,7 @@ void GameLayer::onHeroDead(BaseSprite *pTarget)
 	if(m_pHero->getCurrActionState() == ACTION_STATE_DEAD)
 	{
 		log("GameLayer::onHeroDead*******************");
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_HERO_DEAD_EFFECT);
 		pTarget->removeSprite();
 		SceneManager::getInstance()->showScene(GAME_OVER_SCENE);
 	}
@@ -195,7 +212,7 @@ void GameLayer::updateHero(float dt)
 			this->setPositionX(this->getPositionX() - m_heroVelocity.x);
 			this->m_pBlood->setPositionX(this->m_pBlood->getPositionX() + m_heroVelocity.x);
 			this->m_pBloodBg->setPositionX(this->m_pBloodBg->getPositionX() + m_heroVelocity.x);
-
+			this->m_pCloseItem->setPositionX(this->m_pCloseItem->getPositionX() + m_heroVelocity.x);
 		}else if(expectP.x < halfHeroFrameWidth || expectP.x >= mapWidth - halfHeroFrameWidth)
 		{
 			actualP.x = m_pHero->getPositionX();
@@ -225,6 +242,7 @@ void GameLayer::updateEnemies(float dt) {
 		Enemy *pEnemy = (Enemy*)pObj;
 		if(pEnemy->getCurrActionState() == ACTION_STATE_REMOVE)
 		{
+			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_ENEMY_DEAD_EFFECT);
 			pRemovedEnemies->addObject(pEnemy);
 			continue;
 		}
@@ -279,6 +297,7 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 				m_pHero->runHurtAction(damage);
 				//log("hero hp=%d", m_pHero->getHP());
 				this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
+				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_ENEMY_HIT_EFFECT);
 			}
 		}
 	}
@@ -320,7 +339,7 @@ void GameLayer::addEnemy()
 
 	pEnemy->attack = CC_CALLBACK_0(GameLayer::onEnemyAttack, this, pEnemy);
 	pEnemy->onDeadCallback = CC_CALLBACK_0(GameLayer::onEnemyDead, this, pEnemy);
-	pEnemy->setPosition(location);
+	pEnemy->setPosition(m_origin + location);
 	pEnemy->setZOrder(m_fScreenHeight - pEnemy->getPositionY());
 	pEnemy->runIdleAction();
 	pEnemy->setAttack(5);
