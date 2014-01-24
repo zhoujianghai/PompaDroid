@@ -11,3 +11,5 @@ obj
 gen
 libs
 bin
+.settings
+lint.xml

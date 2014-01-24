@@ -2,7 +2,6 @@
 #define _GAME_LAYER_H_
 
 #include <cocos2d.h>
-#include "OperateDelegate.h"
 
 #define MIN_ENEMY_COUNT 5
 #define PATH_BG_MUSIC "background-music-aac.wav"
@@ -43,15 +42,17 @@ public:
 
 private:
 	cocos2d::TMXTiledMap *m_pTiledMap;
-	cocos2d::Array *m_pEnemies;
-	cocos2d::SpriteBatchNode *m_pSpriteNodes;
-	cocos2d::Point m_heroVelocity;
 	float m_fTileWidth;
 	float m_fTileHeight;
 
 	float m_fScreenWidth;
 	float m_fScreenHeight;
 	cocos2d::Point m_origin;
+
+	cocos2d::Array *m_pEnemies;
+	cocos2d::SpriteBatchNode *m_pSpriteNodes;
+	cocos2d::Point m_heroVelocity;
+
 
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;

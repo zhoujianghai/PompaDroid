@@ -15,6 +15,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     // create the application instance
     AppDelegate app;
     EGLView eglView;
-    eglView.init("TestCPP",1280, 720);
+    eglView.init("TestCPP", 480, 320);
     return Application::getInstance()->run();
 }
