@@ -70,7 +70,6 @@ bool GameLayer::init()
 		m_pHero->setZOrder(m_fScreenHeight - m_pHero->getPositionY());
 		m_pHero->setAttack(5);
 		m_pHero->setHP(100);
-		m_pHero->setDirection(Point::ZERO);
 		m_pHero->onDeadCallback = CC_CALLBACK_0(GameLayer::onHeroDead, this, m_pHero);
 		m_pHero->attack = CC_CALLBACK_0(GameLayer::onHeroAttack, this);
 		m_pHero->stop = CC_CALLBACK_0(GameLayer::onHeroStop, this);
@@ -356,7 +355,6 @@ void GameLayer::addEnemy()
 	pEnemy->setAttack(5);
 	pEnemy->setHP(30);
 	pEnemy->setVelocity(Point(0.5f, 0.5f));
-	pEnemy->setDirection(Point::ZERO);
 	pEnemy->setEyeArea(200);
 	pEnemy->setAttackArea(25);
 
