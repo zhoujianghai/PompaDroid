@@ -93,8 +93,8 @@ void Enemy::decide(const Point& target, float targetBodyWidth)
 			this->runWalkAction();
 			this->m_moveDirection.x = CCRANDOM_MINUS1_1();
 			this->m_moveDirection.y = CCRANDOM_MINUS1_1();
-			m_moveDirection.x  = m_moveDirection.x > 0 ? (m_moveDirection.x + m_fVelocity) : (m_moveDirection.x - m_fVelocity);
-			m_moveDirection.y  = m_moveDirection.y > 0 ? (m_moveDirection.y + m_fVelocity) : (m_moveDirection.y - m_fVelocity);
+			m_moveDirection.x  = m_moveDirection.x > 0 ? (m_moveDirection.x + m_fVelocity.x) : (m_moveDirection.x - m_fVelocity.x);
+			m_moveDirection.y  = m_moveDirection.y > 0 ? (m_moveDirection.y + m_fVelocity.y) : (m_moveDirection.y - m_fVelocity.y);
 			this->m_nextDecisionTime = CCRANDOM_0_1() * 100;
 		}
 		break;
@@ -104,8 +104,8 @@ void Enemy::decide(const Point& target, float targetBodyWidth)
 			//v.normalize() function return the unit vector of v
 			this->m_moveDirection = (target - location).normalize();
 			this->setFlippedX(m_moveDirection.x < 0 ? true : false);
-			m_moveDirection.x  = m_moveDirection.x > 0 ? (m_moveDirection.x + m_fVelocity) : (m_moveDirection.x - m_fVelocity);
-			m_moveDirection.y  = m_moveDirection.y > 0 ? (m_moveDirection.y + m_fVelocity) : (m_moveDirection.y - m_fVelocity);
+			m_moveDirection.x  = m_moveDirection.x > 0 ? (m_moveDirection.x + m_fVelocity.x) : (m_moveDirection.x - m_fVelocity.x);
+			m_moveDirection.y  = m_moveDirection.y > 0 ? (m_moveDirection.y + m_fVelocity.y) : (m_moveDirection.y - m_fVelocity.y);
 			this->m_nextDecisionTime = 10;
 		}
 		break;

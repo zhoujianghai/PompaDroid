@@ -40,7 +40,7 @@ public:
 
 	CC_SYNTHESIZE(ActionState, m_currActionState, CurrActionState);
 	CC_SYNTHESIZE(cocos2d::Point, m_direction, Direction);
-	CC_SYNTHESIZE(float, m_fVelocity, Velocity);
+	CC_SYNTHESIZE(cocos2d::Point, m_fVelocity, Velocity);
 	CC_SYNTHESIZE(unsigned int, m_hp, HP);
 	CC_SYNTHESIZE(unsigned int, m_attack, Attack);
 

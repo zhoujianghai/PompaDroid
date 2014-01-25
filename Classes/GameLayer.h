@@ -51,8 +51,6 @@ private:
 
 	cocos2d::Array *m_pEnemies;
 	cocos2d::SpriteBatchNode *m_pSpriteNodes;
-	cocos2d::Point m_heroVelocity;
-
 
 	cocos2d::ProgressTimer *m_pBlood;
 	cocos2d::ProgressTimer *m_pBloodBg;

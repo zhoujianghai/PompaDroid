@@ -50,12 +50,7 @@ void BaseSprite::runHurtAction(int damage)
 	if(changeState(ACTION_STATE_HURT))
 	{
 		this->runAction(m_pHurtAction);
-		this->m_hp -= damage;
-		//log("m_hp=%d damage=%d", this->m_hp, damage);
-		if(this->m_hp <= 0)
-		{
-			this->runDeadAction();
-		}
+
 	}
 }
 
