@@ -24,8 +24,8 @@ bool OperateLayer::init()
 
 		m_pJoystick = Sprite::create("joystick.png");
 		m_pJoystickBg = Sprite::create("joystick_bg.png");
-		this->addChild(m_pJoystick);
-		this->addChild(m_pJoystickBg);
+		this->addChild(m_pJoystickBg, 0);
+		this->addChild(m_pJoystick, 1);
 
 		this->hideJoystick();
 
