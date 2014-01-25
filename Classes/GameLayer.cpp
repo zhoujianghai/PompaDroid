@@ -105,6 +105,7 @@ bool GameLayer::init()
 		}
 
 		CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic(PATH_BG_MUSIC, true);
+		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_HERO_TALK_EFFECT);
 
 		this->scheduleUpdate();
 
@@ -185,7 +186,6 @@ void GameLayer::onHeroDead(BaseSprite *pTarget)
 {
 	if(m_pHero->getCurrActionState() == ACTION_STATE_DEAD)
 	{
-		CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_HERO_DEAD_EFFECT);
 		pTarget->removeSprite();
 		SceneManager::getInstance()->showScene(GAME_OVER_SCENE);
 	}
@@ -301,13 +301,15 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 				int damage = pEnemy->getAttack();
 				m_pHero->runHurtAction(damage);
 				m_pHero->setHP(m_pHero->getHP() - damage);
-			
+				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_ENEMY_HIT_EFFECT);
+
 				if(m_pHero->getHP() <= 0)
 				{
 					m_pHero->runDeadAction();
+					CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_HERO_DEAD_EFFECT);
 				}
 				this->m_pBlood->setPercentage( (m_pHero->getHP() / 100.0f) * 100);
-				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_ENEMY_HIT_EFFECT);
+				
 			}
 		}
 	}

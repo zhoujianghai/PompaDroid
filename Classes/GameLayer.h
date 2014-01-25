@@ -7,8 +7,9 @@
 #define PATH_BG_MUSIC "background-music-aac.wav"
 #define PATH_HERO_HIT_EFFECT "pd_hit0.wav"
 #define PATH_ENEMY_HIT_EFFECT "pd_hit1.wav"
-#define PATH_HERO_DEAD_EFFECT "pd_herodeath.wav"
+#define PATH_HERO_DEAD_EFFECT "pd_herodeath.mp3"
 #define PATH_ENEMY_DEAD_EFFECT "pd_botdeath.wav"
+#define PATH_HERO_TALK_EFFECT "hero_talk.mp3"
 
 class BaseSprite;
 class Hero;
