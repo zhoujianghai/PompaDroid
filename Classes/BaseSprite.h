@@ -28,7 +28,7 @@ public:
 	void runIdleAction();
 	void runWalkAction();
 	void runAttackAction();
-	void runHurtAction(int damage);
+	void runHurtAction();
 	void removeSprite();
 	void runDeadAction();
 
@@ -49,8 +49,6 @@ public:
 	virtual void setPosition(const cocos2d::Point &position);
 
 	virtual void onDead();
-
-	virtual void onAttackActionFinish();
 
 	virtual bool isLive();
 

@@ -45,7 +45,7 @@ void BaseSprite::runAttackAction()
 	}
 }
 
-void BaseSprite::runHurtAction(int damage)
+void BaseSprite::runHurtAction()
 {
 	if(changeState(ACTION_STATE_HURT))
 	{
@@ -96,11 +96,6 @@ void BaseSprite::onDead()
 	this->onDeadCallback();
 }
 
-void BaseSprite::onAttackActionFinish()
-{
-
-}
-
 bool BaseSprite::isLive()
 {
 	if(this->m_currActionState >= ACTION_STATE_DEAD)
@@ -131,7 +126,7 @@ BoundingBox BaseSprite::createBoundingBox(cocos2d::Point origin, cocos2d::Size s
 	BoundingBox boundingBox;
 	boundingBox.original.origin= origin;
 	boundingBox.original.size= size;
-	boundingBox.actual.origin = this->getPosition() + Point(boundingBox.original.origin.x, boundingBox.original.origin.y);
+	boundingBox.actual.origin = this->getPosition() + boundingBox.original.origin;
 	boundingBox.actual.size= size;
 	return boundingBox;
 }
@@ -147,7 +142,7 @@ void BaseSprite::updateBoxes() {
 		x = this->getPosition().x + m_hitBox.original.origin.x;
 	}
 	m_hitBox.actual.origin = Point(x, this->getPosition().y + m_hitBox.original.origin.y);
-    m_bodyBox.actual.origin = this->getPosition() +m_bodyBox.original.origin;
+    m_bodyBox.actual.origin = this->getPosition() + m_bodyBox.original.origin;
 }
 
 void BaseSprite::setPosition(const Point &position)

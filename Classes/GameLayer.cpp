@@ -158,7 +158,7 @@ void GameLayer::onHeroAttack()
 					if(::collisionDetection(heroHitBox, enemyBodyBox))
 					{
 						int damage = m_pHero->getAttack();
-						pEnemy->runHurtAction(damage);
+						pEnemy->runHurtAction();
 						pEnemy->setHP(pEnemy->getHP() - damage);
 			
 						if(pEnemy->getHP() <= 0)
@@ -299,7 +299,7 @@ void GameLayer::onEnemyAttack(BaseSprite *pSprite)
 			if(::collisionDetection(enemyHitBox, heroBodyBox))
 			{
 				int damage = pEnemy->getAttack();
-				m_pHero->runHurtAction(damage);
+				m_pHero->runHurtAction();
 				m_pHero->setHP(m_pHero->getHP() - damage);
 				CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(PATH_ENEMY_HIT_EFFECT);
 

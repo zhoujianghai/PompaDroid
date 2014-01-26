@@ -31,9 +31,9 @@ bool Enemy::init()
 		Animation *pDeadAnim = this->createAnimation("robot_knockout_%02d.png", 5, 12);
 		this->setDeadAction(Sequence::create(Animate::create(pDeadAnim), Blink::create(3, 9), BaseSprite::createDeadCallbackFunc(), NULL));
 
-		Size heroShowSize = this->getDisplayFrame()->getRect().size;
-		this->m_bodyBox = this->createBoundingBox(Point(-heroShowSize.width / 2, -heroShowSize.height / 2), heroShowSize);
-		this->m_hitBox = this->createBoundingBox(Point(heroShowSize.width / 2, -5), Size(25, 20));
+		Size enemyShowSize = this->getDisplayFrame()->getRect().size;
+		this->m_bodyBox = this->createBoundingBox(Point(-enemyShowSize.width / 2, -enemyShowSize.height / 2), enemyShowSize);
+		this->m_hitBox = this->createBoundingBox(Point(enemyShowSize.width / 2, -5), Size(25, 20));
 
 		ret = true;
 	} while(0);
